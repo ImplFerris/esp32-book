@@ -1,0 +1,17 @@
+[book]
+title = "impl Rust on ESP32"
+authors = []
+language = "en"
+multilingual = false
+src = "src"
+
+[output.html]
+git-repository-url = "https://github.com/ImplFerris/esp32-book"
+cname = "esp.implrust.com"
+preferred-dark-theme = "ayu"
+preferred-light-theme = "rust"
+default-theme = "light"
+mathjax-support = true
+
+# [output.html.playground]
+# editable = true
