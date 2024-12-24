@@ -105,4 +105,3 @@ The following are basic specs for the ESP32:
 ## Reference
 - [Buyers Guide](https://eitherway.io/posts/esp32-buyers-guide/)
 - [Chip Series Comparison](https://docs.espressif.com/projects/esp-idf/en/v5.0/esp32s3/hw-reference/chip-series-comparison.html)
-- [ESP32 Guide 2024 Video](https://www.youtube.com/watch?v=u5unB24lhC4)
