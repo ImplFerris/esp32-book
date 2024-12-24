@@ -99,6 +99,28 @@ The percentage of time the signal is on during one cycle.
 <span style="text-align: center;display: block; margin: auto;  font-size: 12px;">Image Credit: Wikipedia</span>
 
 
+## Period and Frequency
+Period is the total time for one on-off cycle to complete. 
+
+The frequency of a PWM signal is the number of cycles it completes in one second, measured in Hertz (Hz).  Frequency is the inverse of the period.  So, a higher frequency means a shorter period, resulting in faster switching between HIGH and LOW states.
+
+\\[
+\text{Frequency (Hz)} = \\frac{1}{\text{Period (s)}}
+\\]
+
+So if the period is 1 second, then the frequency will be 1HZ.
+
+\\[
+1 \text{Hz} = \\frac{1 \text{ cycle}}{1 \text{ second}} = \\frac{1}{1 \text{ s}}
+\\]
+
+For example, if the period is 20ms(0.02s), the frequency will be 50Hz.
+
+\\[
+\text{Frequency} = \\frac{1}{20 \text{ ms}} = \\frac{1}{0.02 \text{ s}} = 50 \text{ Hz}
+\\]
+
+
 ## PWM Simulation
 
 Here is the interactive simulation. Use the sliders to adjust the duty cycle and frequency, and watch how the pulse width and LED brightness change.
@@ -122,26 +144,6 @@ Here is the interactive simulation. Use the sliders to adjust the duty cycle and
   <!-- <span id="frequencyValue">x</span> Hz -->
 </div>
 
-## Period and Frequency
-Period is the total time for one on-off cycle to complete. 
-
-The frequency of a PWM signal is the number of cycles it completes in one second, measured in Hertz (Hz).  Frequency is the inverse of the period.  So, a higher frequency means a shorter period, resulting in faster switching between HIGH and LOW states.
-
-\\[
-\text{Frequency (Hz)} = \\frac{1}{\text{Period (s)}}
-\\]
-
-So if the period is 1 second, then the frequency will be 1HZ.
-
-\\[
-1 \text{Hz} = \\frac{1 \text{ cycle}}{1 \text{ second}} = \\frac{1}{1 \text{ s}}
-\\]
-
-For example, if the period is 20ms(0.02s), the frequency will be 50Hz.
-
-\\[
-\text{Frequency} = \\frac{1}{20 \text{ ms}} = \\frac{1}{0.02 \text{ s}} = 50 \text{ Hz}
-\\]
 
 
 **Calculating Cycle count from Frequency per second**
