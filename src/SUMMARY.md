@@ -1,9 +1,15 @@
 # Summary
 
 - [Introduction](./index.md)
-    - [ESP32 Family](./esp32-family.md)
+    - [ESP32 Family](./esp32-intro/esp32-family.md)
+    - [Pinout Diagram](./esp32-intro/pinout.md)
     - [Dev Environment](./dev-env.md)
     - [Quick Start](./quick-start.md)
     - [Async and Embassy](./embassy.md)
-    - [Pinout Diagram](./pinout.md)
-<!-- - [Dimming LED](./dimming-led/index.md) -->
+- [Core Concepts](./core-concepts/index.md)
+    - [Voltage Divider](./core-concepts/voltage-divider.md)
+    - [ADC](./core-concepts/adc.md)
+    - [PWM](./core-concepts/pwm/index.md)
+    - [no_std, no_main in Rust](./core-concepts/no-std-main.md)
+- [Dimming LED](./dimming-led/index.md)
+    - [LED PWM Controller](./core-concepts/pwm/led-pwm-controller.md)
