@@ -240,3 +240,292 @@ sup {
 .result-no-output {
     font-style: italic;
 }
+
+/* Wire body */
+.wire {
+position: relative;
+width: 200px;
+height: 4px;
+border-radius: 3px;
+margin-bottom: 20px; /* Space between wires */
+
+}
+
+/* Wire colors */
+.wire.red { background: #ff0000; }   /* Red wire */
+.wire.black { 
+    background: #000000; 
+    border: 2px solid #FFFFFF;
+} /* Black wire */
+.wire.green { background: #13d613; } /* Green wire */
+.wire.yellow { background: #e6e61c; } /* Yellow wire */
+.wire.blue { background: #057af7; } /* Default blue wire */
+.wire.orange { background: #fc5310; } /* Orange wire */
+.wire.brown { background: #824101; } /* Orange wire */
+.wire.purple {background: #800080;}
+
+/* White wire with border to make it visible */
+.white {
+background: #ffffff; /* White color */
+/* border: 1px dotted #AAAAAA; */
+box-shadow: 0 0 6px rgba(0, 0, 0, 0.3); 
+}
+
+/* Male connector (left) */
+.male-left {
+position: absolute;
+left: -19px;
+top: 50%;
+transform: translateY(-50%);
+width: 24px;
+height: 8px;
+background: #000;
+border: 2px solid #CCC;
+}
+
+/* Pin extending from left connector */
+.male-left::after {
+content: '';
+position: absolute;
+left: -12px; /* Reduced gap between connector and pin */
+top: 50%;
+transform: translateY(-50%);
+width: 12px;
+height: 2px;
+background: #555; /* Pin color */
+}
+
+/* Male connector (right) */
+.male-right {
+position: absolute;
+right: -8px;
+top: 50%;
+transform: translateY(-50%);
+width: 24px;
+height: 8px;
+background: #000;
+border: 2px solid #CCC;
+
+}
+
+/* Pin extending from right connector */
+.male-right::after {
+content: '';
+position: absolute;
+right: -12px; /* Reduced gap between connector and pin */
+top: 50%;
+transform: translateY(-50%);
+width: 12px;
+height: 2px;
+background: #555; /* Pin color */
+}
+
+/* Female connector (left) */
+.female-left {
+position: absolute;
+left: -19px;
+top: 50%;
+transform: translateY(-50%);
+width: 24px; 
+height: 8px;
+background: #000;
+border: 2px solid #CCC;
+} 
+
+.female-left::after {
+    content: '';
+    position: absolute;
+    left: 1px; 
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: #999;
+    border-radius: 50%; 
+  }
+  
+/* Female connector (right) */
+.female-right {
+position: absolute;
+right: -19px;
+top: 50%;
+transform: translateY(-50%);
+width: 24px; 
+height: 8px;
+background: #000;
+border: 2px solid #CCC;
+}
+
+.female-right::after {
+    content: '';
+    position: absolute;
+    right: 1px; 
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: #999;
+    border-radius: 50%; 
+  }
+
+  .boxed-text {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-clip: padding-box;
+    transition: all 0.3s ease-in-out;
+  }
+
+ 
+
+.alert-box {
+    display: flex;
+    align-items: flex-start;
+    /* padding: 16px; */
+    border-radius: 8px;
+    margin: 16px 0;
+    font-family: Arial, sans-serif;
+    position: relative;
+    padding: 12px 0px 0px 10px;
+}
+
+.alert-box .icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent background */
+    border: 2px solid currentColor;
+    position: absolute;
+    top: 10px;
+    left: 8px;
+    color: inherit; /* Matches the alert's text color */
+}
+
+.alert-box .alert-content {
+    margin-left: 48px; /* Leaves space for the round icon */
+}
+
+.alert-box .alert-title {
+    margin: 0px 8px 0px 0px;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+/* .alert-box p { */
+    /* margin: 0; */
+    /* font-size: 14px; */
+/* } */
+
+.alert-box.alert-box-warning {
+    background-color: #fff4cc;
+    border: 1px solid #ffcc00;
+    color: #856404;
+}
+
+.alert-box.alert-box-info {
+    background-color: #E8F0Fe;
+    border: 1px solid #17a2b8;
+    color: #0c5460;
+}
+
+.alert-box.alert-box-danger {
+    background-color: #f8d7da;
+    border: 1px solid #dc3545;
+    color: #721c24;
+}
+
+.alert-box.alert-box-success {
+    background-color: #d4edda;
+    border: 1px solid #28a745;
+    color: #155724;
+}
+
+.icon i {
+    background: none !important; /* Remove any background set by Font Awesome */
+    box-shadow: none !important; /* Remove shadow if applied */
+    color: inherit; /* Inherit alert text color */
+}
+
+/* General styles for slanted text */
+.slanted-text {
+    display: inline-block;
+    padding: 3px 6px;
+    margin: 0 5px;
+    font-weight: bold;
+    transform: skew(-8deg);
+    border-radius: 3px;
+  }
+  
+  /* Individual color themes */
+  .slanted-text.red {
+    /* background: linear-gradient(135deg, #e74c3c, #c0392b); */
+    background: #e74c3c;
+    color: black;
+  }
+  
+  .slanted-text.yellow {
+    /* background: linear-gradient(135deg, #f39c12, #e67e22); */
+    background: #efe012;
+    color: white;
+  }
+  
+  .slanted-text.teal {
+    /* background: linear-gradient(135deg, #1abc9c, #16a085); */
+    background: #1abc9c;
+    color: black;
+  }
+  
+  .slanted-text.blue {
+    /* background: linear-gradient(135deg, #00bcd4, #008c8c); */
+    background: #3457D5;
+    color: black;
+  }
+  
+  .slanted-text.pink {
+    /* background: linear-gradient(135deg, #e91e63, #c2185b); */
+    background: #e91e63;
+    color: black;
+  }
+  
+  .slanted-text.purple {
+    /* background: linear-gradient(135deg, #8e44ad, #6f4f37); */
+    background: #8e44ad;
+    color: black;
+  }
+
+  .slanted-text.brown {
+    /* background: linear-gradient(135deg, #6f4f37, #a0522d); */
+    background: #a0522d;
+    color: black;
+  }
+  .slanted-text.green {
+    /* background: linear-gradient(135deg, #2ecc71, #27ae60); */
+    background: #00A550;
+    color: black;
+  }
+  
+  .slanted-text.gray {
+    background: linear-gradient(135deg, #bdc3c7, #95a5a6);
+    color: black;
+  }
+  
+  .slanted-text.indigo {
+    background: linear-gradient(135deg, #3f51b5, #303f9f);
+    color: black;
+  }
+  
+    
+  .slanted-text.black {
+    background: #333333;
+    color: #999;
+  }
+  
+  .slanted-text span {
+    display: inline-block;
+    transform: skew(10deg);
+  }
