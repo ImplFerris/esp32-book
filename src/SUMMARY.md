@@ -10,6 +10,7 @@
     - [Voltage Divider](./core-concepts/voltage-divider.md)
     - [ADC](./core-concepts/adc.md)
     - [PWM](./core-concepts/pwm/index.md)
+        - [PWM in Depth](./core-concepts/pwm/pwm-in-depth.md)
         - [LED PWM Controller](./core-concepts/pwm/led-pwm-controller.md)
     - [no_std, no_main in Rust](./core-concepts/no-std-main.md)
 - [Dimming LED](./dimming-led/index.md)

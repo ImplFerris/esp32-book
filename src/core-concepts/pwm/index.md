@@ -67,7 +67,8 @@
     margin: 10px auto;
   }
   #pwmCanvas {
-    background-color: #fefefe; 
+    background-color: #fefefe;
+  } 
 </style>
 
 In this section, we will explore what is PWM and why we need it.
@@ -86,18 +87,37 @@ PWM stands for **Pulse Width Modulation**, creates an analog-like signal by rapi
  
  <img style="display: block; margin: auto;" alt="LED PWM" src="../images/led-pwm.jpg" />
 
+## Duty Cycle
 
-The **duty cycle** of the signal determines how long it stays on compared to how long it stays off. 
+The **duty cycle** is the percentage of time a signal is "on" during one complete cycle. 
 
-- **Duty Cycle**: 
-The percentage of time the signal is on during one cycle. 
-  - For example:
-    - 100% duty cycle means the signal is always on.
-    - 50% duty cycle means the signal is on half the time and off half the time.
-    - 0% duty cycle means the signal is always off.
-<img style="display: block; margin: auto;" alt="Duty Cycle" src="../images/pwm-duty-cycle.png" />
-<span style="text-align: center;display: block; margin: auto;  font-size: 12px;">Image Credit: Wikipedia</span>
+For example:
+- 100% duty cycle means the signal is always on.
+- 50% duty cycle means the signal is on half the time and off half the time.
+- 0% duty cycle means the signal is always off.
 
+
+Here is the interactive simulation. Use the sliders to adjust the duty cycle and frequency, and watch how the pulse width and LED brightness change.  The upper part of the square wave represents when the signal is high (on). The lower part represents when the signal is low(off)
+
+<canvas id="pwmCanvas" width="800" height="200"></canvas>
+<div class="led-container">
+  <div class="led-body" id="ledBody"></div>
+  <div class="led-pin anode"></div>
+  <div class="led-pin cathode"></div>
+</div>
+
+<div class="slider-container">
+  <label for="dutyCycle">Duty Cycle (%): </label>
+  <input type="range" id="dutyCycle" min="0" max="100" value="50">
+  <span id="dutyCycleValue">50</span>%
+</div>
+<div class="slider-container">
+  <label for="frequency">Frequency (Hz): </label>
+  <input type="range" id="frequency" min="1" max="50" value="10">
+  <!-- <span id="frequencyValue">x</span> Hz -->
+</div>
+
+If you change the duty cycle from "low to high" and "high to low" in the simulation, you should notice the LED kind of giving a dimming effect.
 
 ## Period and Frequency
 Period is the total time for one on-off cycle to complete. 
@@ -121,31 +141,6 @@ For example, if the period is 20ms(0.02s), the frequency will be 50Hz.
 \\]
 
 
-## PWM Simulation
-
-Here is the interactive simulation. Use the sliders to adjust the duty cycle and frequency, and watch how the pulse width and LED brightness change.
-
-
-<canvas id="pwmCanvas" width="800" height="200"></canvas>
-<div class="led-container">
-  <div class="led-body" id="ledBody"></div>
-  <div class="led-pin anode"></div>
-  <div class="led-pin cathode"></div>
-</div>
-
-<div class="slider-container">
-  <label for="dutyCycle">Duty Cycle (%): </label>
-  <input type="range" id="dutyCycle" min="0" max="100" value="50">
-  <span id="dutyCycleValue">50</span>%
-</div>
-<div class="slider-container">
-  <label for="frequency">Frequency (Hz): </label>
-  <input type="range" id="frequency" min="1" max="50" value="10">
-  <!-- <span id="frequencyValue">x</span> Hz -->
-</div>
-
-
-
 **Calculating Cycle count from Frequency per second**
 
 The Formula to calculate cycle count:  
@@ -154,6 +149,7 @@ The Formula to calculate cycle count:
 \\]
 
 If a PWM signal has a frequency of 50Hz, it means it completes 50 cycles in one second.
+
 
 <script>
   const pwmCanvas = document.getElementById('pwmCanvas');
