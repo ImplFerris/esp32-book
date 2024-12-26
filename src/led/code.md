@@ -2,10 +2,26 @@
 
 Now comes the fun part; let's dive into the coding!
 
-Let's start by initializing the peripherals with the default configuration. This function configures the CPU clock and watchdog, and then returns the instance of the peripherals.
+### Generate project using esp-generate
+
+You have done this step already in the quick start section. 
+
+To create the project, use the `esp-generate` command. Run the following:
+
+```sh
+esp-generate --chip esp32 led-fader
+```
+
+This will open a screen asking you to select options. For now, we dont need to select any options. Just save it by pressing "s" in the keyboard.
+
+Let's start by initializing the peripherals with the default configuration. This function configures the CPU clock and watchdog, and then returns the instance of the peripherals. 
 
 ```rust
-let peripherals = esp_hal::init(esp_hal::Config::default());
+ let peripherals = esp_hal::init({
+    let mut config = esp_hal::Config::default();
+    config.cpu_clock = CpuClock::max();
+    config
+});
 ```
 
 Next, we take our desired GPIO from the peripherals instance. In this case, we're turning on the onboard LED of the Devkit, which is connected to GPIO 2.
@@ -83,7 +99,11 @@ use esp_hal::{
 
 #[entry]
 fn main() -> ! {
-    let peripherals = esp_hal::init(esp_hal::Config::default());
+    let peripherals = esp_hal::init({
+        let mut config = esp_hal::Config::default();
+        config.cpu_clock = CpuClock::max();
+        config
+    });
 
     let led = peripherals.GPIO2;
     // let led = peripherals.GPIO5;
