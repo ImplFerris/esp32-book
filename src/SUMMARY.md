@@ -13,6 +13,6 @@
         - [PWM in Depth](./core-concepts/pwm/pwm-in-depth.md)
         - [LED PWM Controller](./core-concepts/pwm/led-pwm-controller.md)
     - [no_std, no_main in Rust](./core-concepts/no-std-main.md)
-- [Dimming LED](./led/index.md)
+- [Fading LED](./led/index.md)
     - [Code](./led/code.md)
     - [External LED](./led/external-led.md)
