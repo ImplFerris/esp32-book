@@ -30,8 +30,8 @@ For more details, refer to page 390 of the [ESP32 Technical Reference Manual](ht
 
 ## Calculating PWM Duty Resolution
 
-When working with PWM signals in embedded systems, one important aspect to understand is how to calculate the **duty resolution** based on the clock frequency and division factor. The duty resolution determines how finely you can control the duty cycle of a PWM signal.
-
+In the ESP-HAL, we need to specify both the duty resolution and the frequency when configuring the timer object. Therefore, it's important to understand how to calculate the duty resolution from a desired frequency and how to determine the frequency based on a given duty resolution.
+ 
 These are the formulas taken from the ESP32 technical reference manual but the variable names are simplified.
 
 ### Formula for PWM Signal Frequency

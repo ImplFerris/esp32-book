@@ -6,6 +6,8 @@ In this book, we use the ESP32 and program it in Rust to explore various excitin
 ## Prerequisites
 If you haven't already read the ["The Rust on ESP Book"](https://docs.esp-rs.org/book/introduction.html), I highly recommend doing so first. While this book will cover some aspects of setting up the development environment and basic concepts, it will not go into as much detail to avoid unnecessary repetition, as these topics are already thoroughly explained in the official book.
 
+I also recommend you to read ["The Embedded Rust book"](https://docs.rust-embedded.org/book/intro/index.html) - An introductory book about using the Rust on "Bare Metal" embedded systems.
+
 ## Meet the Hardware
 We will be using one of the development board "ESP32 DevKit V1", which comes with built-in Wi-Fi and Bluetooth capabilities, along with an integrated RF module
 <a href ="./images/esp32-devkitv1.jpg"><img style="display: block; margin: auto;width:300px;" src="./images/esp32-devkitv1.jpg"/></a>

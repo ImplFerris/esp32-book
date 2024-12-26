@@ -97,6 +97,8 @@ For example:
 - 0% duty cycle means the signal is always off.
 
 
+
+
 Here is the interactive simulation. Use the sliders to adjust the duty cycle and frequency, and watch how the pulse width and LED brightness change.  The upper part of the square wave represents when the signal is high (on). The lower part represents when the signal is low(off)
 
 <canvas id="pwmCanvas" width="800" height="200"></canvas>
@@ -150,6 +152,7 @@ The Formula to calculate cycle count:
 
 If a PWM signal has a frequency of 50Hz, it means it completes 50 cycles in one second.
 
+In the next chapter, we will go in depth into the PWM and timer.
 
 <script>
   const pwmCanvas = document.getElementById('pwmCanvas');
