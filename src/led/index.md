@@ -15,4 +15,6 @@ Because the more you think you see... The easier it’ll be to fool you...
 Because, what is seeing?.... You're looking but what you're really doing is filtering, interpreting, searching for meaning...
 "
 
+In PWM, we basically set a percentage to specify how long the signal stays HIGH (ON) and LOW (OFF) in each cycle. For instance, with a 50% duty cycle, the signal is ON for half the time and OFF for the other half, making the LED light up for just half the cycle.
+
 Now, here's the cool part: when this switching happens super quickly, our eyes can't keep up. Instead of seeing the blinking, it just looks like the brightness changes! The longer the LED stays ON, the brighter it seems, and the shorter it's ON, the dimmer it looks. It's like tricking your brain into thinking the LED is smoothly dimming or brightening. PWM: the magician of electronics!
