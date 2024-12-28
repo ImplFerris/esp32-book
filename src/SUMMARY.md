@@ -20,3 +20,4 @@
     - [How it works?](./ultrasonic/how-it-works.md)
     - [Circuit](./ultrasonic/circuit.md)
     - [Code](./ultrasonic/code.md)
+    - [Using Buzzer](./ultrasonic/using-buzzer.md)
