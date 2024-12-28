@@ -25,7 +25,7 @@ If you want to experiment with different resistor values, you can use the [Falst
   </thead>
   <tbody>
     <tr>
-      <td>5V</td>
+      <td>Vin (5V)</td>
       <td style="text-align: center; vertical-align: middle; padding: 0;">
         <div class="wire red" style="height: 4px; width: 200px; margin: 0 auto;">
           <div class="male-left"></div>
