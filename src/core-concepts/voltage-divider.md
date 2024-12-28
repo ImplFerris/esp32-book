@@ -50,4 +50,4 @@ Voltage dividers are used in applications like potentiometers, where the resista
 
 ## Simulator
 
-I used the website [https://www.falstad.com/circuit/e-voltdivide.html](https://www.falstad.com/circuit/e-voltdivide.html) to create this diagram. It's a great tool for drawing circuits. You can download the file I created, [`voltage-divider.circuitjs.txt`](./voltage-divider.circuitjs.txt), and import it to experiment with the circuit.
+I used the website [https://www.falstad.com/circuit/](https://www.falstad.com/circuit/) to create this diagram. It's a great tool for drawing circuits. You can download the file I created, [`voltage-divider.circuitjs.txt`](./voltage-divider.circuitjs.txt), and import it to experiment with the circuit.

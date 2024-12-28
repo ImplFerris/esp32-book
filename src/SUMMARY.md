@@ -16,3 +16,7 @@
 - [Fading LED](./led/index.md)
     - [Code](./led/code.md)
     - [External LED](./led/external-led.md)
+- [Ultrasonic](./ultrasonic/index.md)
+    - [How it works?](./ultrasonic/how-it-works.md)
+    - [Circuit](./ultrasonic/circuit.md)
+    - [Code](./ultrasonic/code.md)

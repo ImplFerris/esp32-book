@@ -462,65 +462,65 @@ border: 2px solid #CCC;
   }
   
   /* Individual color themes */
-  .slanted-text.red {
+  .slanted-text.st-red {
     /* background: linear-gradient(135deg, #e74c3c, #c0392b); */
     background: #e74c3c;
     color: black;
   }
   
-  .slanted-text.yellow {
+  .slanted-text.st-yellow {
     /* background: linear-gradient(135deg, #f39c12, #e67e22); */
     background: #efe012;
-    color: white;
+    color: black;
   }
   
-  .slanted-text.teal {
+  .slanted-text.st-teal {
     /* background: linear-gradient(135deg, #1abc9c, #16a085); */
     background: #1abc9c;
     color: black;
   }
   
-  .slanted-text.blue {
+  .slanted-text.st-blue {
     /* background: linear-gradient(135deg, #00bcd4, #008c8c); */
     background: #3457D5;
     color: black;
   }
   
-  .slanted-text.pink {
+  .slanted-text.st-pink {
     /* background: linear-gradient(135deg, #e91e63, #c2185b); */
     background: #e91e63;
     color: black;
   }
   
-  .slanted-text.purple {
+  .slanted-text.st-purple {
     /* background: linear-gradient(135deg, #8e44ad, #6f4f37); */
     background: #8e44ad;
     color: black;
   }
 
-  .slanted-text.brown {
+  .slanted-text.st-brown {
     /* background: linear-gradient(135deg, #6f4f37, #a0522d); */
     background: #a0522d;
     color: black;
   }
-  .slanted-text.green {
+  .slanted-text.st-green {
     /* background: linear-gradient(135deg, #2ecc71, #27ae60); */
     background: #00A550;
     color: black;
   }
   
-  .slanted-text.gray {
+  .slanted-text.st-gray {
     background: linear-gradient(135deg, #bdc3c7, #95a5a6);
     color: black;
   }
   
-  .slanted-text.indigo {
+  .slanted-text.st-indigo {
     background: linear-gradient(135deg, #3f51b5, #303f9f);
     color: black;
   }
   
     
-  .slanted-text.black {
+  .slanted-text.st-black {
     background: #333333;
     color: #999;
   }
