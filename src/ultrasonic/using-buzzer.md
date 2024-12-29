@@ -4,7 +4,7 @@ In our previous exercise, we used an LED that got brighter as the object got clo
 
 ## Circuit
 
-The circuit is almost the same as before. The only difference is that you need to remove the LED and its associated resistor. Instead, connect the buzzer to GPIO 33. Then, connect the other pin of the buzzer to the ground. It doesn't matter which pin of Buzzer is connected to power or ground because the active buzzer will produce sound as long as one pin is connected to GPIO and the other to ground.
+The circuit is almost the same as before. The only difference is that you need to remove the LED and its associated resistor. Instead, connect the buzzer to GPIO 33. We will connect the positive pin(usually marked with plus sign) of the Buzzer to the GPIO 33 and other pin to the ground. 
 
 <img style="display: block; margin: auto;" alt="hc-sr04 with buzzer and ESP32 circuit" src="./images/ESP32-HC-SR04-circuit-buzzer.png"/>
 

@@ -1,6 +1,6 @@
 # LED Fading effect
 
-In this section, we will learn how to create a fading effect(i.e. reducing and increasing the brightness) for an LED using the Raspberry Pi Pico 2. First, we will fade the onboard LED, which is connected to GPIO 2. 
+In this section, we will learn how to create a fading effect(i.e. reducing and increasing the brightness) for an LED using the ESP32. First, we will fade the onboard LED, which is connected to GPIO 2. 
 
 To make the fading effect, we use a technique called PWM (Pulse Width Modulation). You can refer to the intro to the PWM section [here](../core-concepts/pwm/index.md).
 
