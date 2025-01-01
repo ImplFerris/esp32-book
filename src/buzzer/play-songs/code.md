@@ -7,7 +7,7 @@ You have done this step already in the quick start section.
 To create the project, use the `esp-generate` command. Run the following:
 
 ```sh
-esp-generate --chip esp32 active-buzzer
+esp-generate --chip esp32 buzzer-song
 ```
 
 This will open a screen asking you to select options. For now, we dont need to select any options. Just save it by pressing "s" in the keyboard.
