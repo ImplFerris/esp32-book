@@ -21,7 +21,7 @@
     - [Circuit](./buzzer/circuit.md)
     - [Active Beep](./buzzer/active-beep.md)
     - [Play Songs](./buzzer/play-songs/index.md)
-        - [Musical notes](./buzzer/play-songs/music-theory.md)
+        - [Music notes](./buzzer/play-songs/music-theory.md)
         - [Music module](./buzzer/play-songs/music-module.md)
         - [Song module](./buzzer/play-songs/song-module.md)
         - [Code](./buzzer/play-songs/code.md)
