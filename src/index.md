@@ -2,7 +2,6 @@
 
 In this book, we use the ESP32 and program it in Rust to explore various exciting projects. ESP32 is one of the go-to choices for IoT applications.
  
-
 ## Prerequisites
 If you haven't already read the ["The Rust on ESP Book"](https://docs.esp-rs.org/book/introduction.html), I highly recommend doing so first. While this book will cover some aspects of setting up the development environment and basic concepts, it will not go into as much detail to avoid unnecessary repetition, as these topics are already thoroughly explained in the official book.
 
