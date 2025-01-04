@@ -18,6 +18,14 @@ For detailed technical information, specifications, and guidelines, refer to the
 - [Technical Reference Manual](https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf)
 - [ESP32-WROOM-32 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32_datasheet_en.pdf)
 
+
+## Breadboard
+The ESP32 devkit is slightly wider than usual. If you use a standard breadboard, you might struggle to fit the board, as I did. To solve this, I bought two mini breadboards, placed the ESP32 between them, and connected each side.
+
+<img style="display: block; margin: auto;width:300px;" src="./images/esp32-devkit-breadboard.png"/>
+
+In the picture, the bottom section shows how I connected the ESP32 to the two breadboards. The top section just displays the breadboards before any connections were made.
+
 ## License
 
 The impl Rust on ESP32 book(this project) is distributed under the following licenses:
