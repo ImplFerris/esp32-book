@@ -5,6 +5,7 @@ Here is a curated list of projects I found online that are interesting and relat
 Note: It will contain projects related to all ESP32 families. So may not be exact ESP32 SoC.
 
 ## ESP32
+- [ESP32 Rex](https://github.com/implferris/esp32-rex): Dinosaur Game for the ESP32 with an OLED display, using the Embassy framework.
 - [Solar Inverter](https://github.com/Orange-Murker/solar_inverter): Grid-Tie Solar Inverter with MPPT
 - [Paper train](https://github.com/vhdirk/papertrain): Displays NMBS train delays on an e-ink display, driven by an esp32
 
