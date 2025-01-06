@@ -43,3 +43,4 @@
         - [Code](./ldr/led/code.md)
 - [Wi-Fi](./wifi/index.md)
     - [Access Website](./wifi/sta-mode-access-website.md)
+- [Projects](./projects.md)
