@@ -41,3 +41,5 @@
     - [How it works?](./ldr/how-it-works.md)
     - [LDR With LED](./ldr/led/index.md)
         - [Code](./ldr/led/code.md)
+- [Wi-Fi](./wifi/index.md)
+    - [Access Website](./wifi/sta-mode-access-website.md)
