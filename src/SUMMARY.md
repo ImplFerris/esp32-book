@@ -43,4 +43,7 @@
         - [Code](./ldr/led/code.md)
 - [Wi-Fi](./wifi/index.md)
     - [Access Website](./wifi/sta-mode-access-website.md)
+    - [Access Website (Embassy)](./wifi/embassy/async-access-website.md)
+        - [Connecting Wifi](./wifi/embassy/connecting-wifi.md)
+        - [HTTP Request](./wifi/embassy/http-request.md)
 - [Projects](./projects.md)

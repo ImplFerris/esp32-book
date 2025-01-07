@@ -7,7 +7,7 @@ In this exercise, we will configure the ESP32 in STA mode to connect to your Wi-
 To create the project, use the `esp-generate` command. Run the following:
 
 ```sh
-esp-generate --chip esp32 wifi-sta
+esp-generate --chip esp32 wifi-website
 ```
 
 This will open a screen asking you to select options. 
@@ -38,6 +38,12 @@ esp_alloc::heap_allocator!(72 * 1024);
 ```
 
 ## Initializing the Wi-Fi Controller
+
+Load the Wi-Fi credentials from environment variables:
+```rust
+const SSID: &str = env!("SSID");
+const PASSWORD: &str = env!("PASSWORD");
+```
 
 First, we initialize the TimerGroup and the Random Number Generator (RNG) required for setting up the Wi-Fi controller. The RNG is also used to initialize the non-async TCP/IP network stack, so we will use clone so that we can re-use it. 
 
