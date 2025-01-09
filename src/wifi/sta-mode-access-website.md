@@ -252,6 +252,6 @@ cd esp32-projects/wifi-website
 
 Normally, we would simply run `cargo run --release`, but this time we also need to pass the environment variables for the Wi-Fi connection.
 
-```rust
+```sh
 SSID=YOUR_WIFI_NAME PASSWORD=YOUR_WIFI_PASSWORD  cargo run --release
 ```
