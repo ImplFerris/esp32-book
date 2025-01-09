@@ -48,4 +48,5 @@
         - [HTTP Request](./wifi/embassy/http-request.md)
     - [Webserver on ESP32](./wifi/web-server/index.md)
         - [Serve Webpage](./wifi/web-server/serve-website.md)
+        - [Exposing to Internet](./wifi/web-server/exposing-to-internet.md)
 - [Projects](./projects.md)
