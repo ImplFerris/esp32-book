@@ -1,6 +1,6 @@
 # Exposing the ESP32 web server to internet
 
-It is generally not recommended to access IoT web servers, like those hosted on ESP32, from the internet without proper security measures. These devices can be vulnerable to attacks such as unauthorized access, or being co-opted into botnets. Additionally, using an ESP32 as a web hosting server is not practical due to challenges like exposing ports, handling traffic loads, and potential security risks.  That said, it can be a great learning experience if you want to try it out or showcase it to your friends.
+It is generally not recommended to access IoT web servers, like those hosted on ESP32, from the internet without proper security measures. These devices can be vulnerable to attacks such as unauthorized access, being co-opted into botnets or cause other kind of damages depending on the device(i would not take the risk). Additionally, using an ESP32 as a web hosting server is not practical due to challenges like exposing ports, handling traffic loads, and potential security risks.  That said, it can be a great learning experience if you want to try it out or showcase it to your friends.
 
 ## Portforwarding in Router
 
