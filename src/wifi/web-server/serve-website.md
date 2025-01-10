@@ -2,6 +2,12 @@
 
 We have completed the boilerplate for the Wi-Fi connection. Next, we will use the picoserve crate to set up a route for the root URL ("/") that will serve our HTML page.
 
+## `impl_trait_in_assoc_type` feature
+The picoserve crate requires the use of the `impl_trait_in_assoc_type` feature, which is currently an unstable feature in Rust. To enable this feature, you need to add the following line to the top of your async_main.rs file:
+```rust
+#![feature(impl_trait_in_assoc_type)]
+```
+
 ## Application and Routing
 
 The picoserve crate provides various traits to configure routing and other features needed for a web application. The `AppBuilder` trait is used to create a static router without state, while the `AppWithStateBuilder` trait allows for a static router with application state. Since our application only serves a single HTML page and doesn't require state, we will implement the AppBuilder trait.  You can find more examples of how to use picoserve [here](https://github.com/sammhicks/picoserve/tree/development/examples).

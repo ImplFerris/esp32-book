@@ -49,4 +49,7 @@
     - [Webserver on ESP32](./wifi/web-server/index.md)
         - [Serve Webpage](./wifi/web-server/serve-website.md)
         - [Exposing to Internet](./wifi/web-server/exposing-to-internet.md)
+    - [Static IP](./wifi/static-ip.md)
+    - [Control LED](./wifi/led/index.md)
+        - [API and Webpage](./wifi/led/webpage-control-led.md)
 - [Projects](./projects.md)
