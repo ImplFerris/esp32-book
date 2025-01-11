@@ -47,7 +47,7 @@ We will update the embassy-executor with the task-arena-size-65536 feature. For 
 embassy-executor = { version = "0.6.3", features = ["task-arena-size-65536"] }
 ```
 
-## Update the embassy-net
+### Update the embassy-net
 To make some functions compatible with the latest picoserve crate, I needed to update embassy-net to version 0.5.0.
 
 ```toml

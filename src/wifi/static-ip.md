@@ -57,6 +57,21 @@ git clone https://github.com/ImplFerris/esp32-projects
 cd esp32-projects/webserver-base
 ```
 
+**Project Structure**:
+
+```
+├── build.rs
+├── Cargo.toml
+├── rust-toolchain.toml
+├── src
+│   ├── bin
+│   │   └── async_main.rs
+│   ├── index.html
+│   ├── lib.rs
+│   ├── web.rs
+│   └── wifi.rs
+```
+
 ### How to run?
 
 Normally, we would simply run `cargo run --release`, but this time we also need to pass the environment variables for the Wi-Fi connection.

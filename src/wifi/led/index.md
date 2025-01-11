@@ -17,6 +17,22 @@ git clone https://github.com/ImplFerris/esp32-projects
 cp -r esp32-projects/webserver-base ~/YOUR_PROJECT_FOLDER/wifi-led
 ```
 
+**Project Structure**:
+
+```
+├── build.rs
+├── Cargo.toml
+├── rust-toolchain.toml
+├── src
+│   ├── bin
+│   │   └── async_main.rs
+│   ├── index.html
+│   ├── led.rs
+│   ├── lib.rs
+│   ├── web.rs
+│   └── wifi.rs
+```
+
 ## Serde 
 Serde is a Rust crate used for serializing and deserializing data structures. We will use it to handle the JSON data exchanged between the backend and the frontend.
 
