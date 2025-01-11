@@ -59,15 +59,35 @@ embassy-net = { version = "0.5.0", features = [
 ] }
 ```
 
+## Project Structure
 
-## Wi-Fi connection setup
+We will organize the logic by splitting it into modules. Under the lib, we will create two submodules: web.rs and wifi.rs.
 
-The Wi-Fi setup code is the same as explained in the ["Connecting Wi-Fi with Embassy"](../embassy/connecting-wifi.md) chapter on the Access Website. To avoid repetition, I won't explain it again here. Please refer to that chapter if you haven't already.
+```
+├── build.rs
+├── Cargo.toml
+├── rust-toolchain.toml
+├── src
+│   ├── bin
+│   │   └── async_main.rs
+│   ├── index.html
+│   ├── lib.rs
+│   ├── web.rs
+│   └── wifi.rs
+```
+
+## Lib Module
+
+We'll relocate the mk_static macro, which allows creating static variables initialized at runtime, into the lib module. Additionally, we'll enable the impl_trait_in_assoc_type feature, as it is required by the picoserve crate.
 
 ```rust
-const SSID: &str = env!("SSID");
-const PASSWORD: &str = env!("PASSWORD");
+#![no_std]
+#![feature(impl_trait_in_assoc_type)]
 
+pub mod web;
+pub mod wifi;
+
+#[macro_export]
 macro_rules! mk_static {
     ($t:ty,$val:expr) => {{
         static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
@@ -78,123 +98,56 @@ macro_rules! mk_static {
 }
 ```
 
-In the main function, we have included boilerplate code to set up the global heap allocator and initialize Embassy. After that, we have created a Wi-Fi controller and run the network stack along with Wi-Fi connection monitoring tasks in the background.  Finally, we print the IP address assigned to our ESP32 by DHCP.
+## The main function (async_main.rs file)
+
+To use the lib module, we would normally have to reference it using the full project name (e.g., webserver::web). However, to keep the references consistent across different exercises, we will alias the import as "lib". This allows us to use it as "lib::web" instead.
+
+In the main function, we start with some boilerplate code to set up the global heap allocator and initialize Embassy.
+
+Next, we create a Wi-Fi controller, which we will pass to the start_wifi function; that we will soon define in the wifi module. This function will return the network stack instance.
+
+We will create a web application instance, configure routing and settings using the picoserve crate. We will then spawn multiple tasks to handle incoming requests based on the defined pool size. Each task receives the task ID, app instance, network stack, and server settings.
 
 ```rust
-let peripherals = esp_hal::init({
-    let mut config = esp_hal::Config::default();
-    config.cpu_clock = CpuClock::max();
-    config
-});
+use webserver as lib;
 
-esp_alloc::heap_allocator!(72 * 1024);
+#[main]
+async fn main(spawner: Spawner) {
+    let peripherals = esp_hal::init({
+        let mut config = esp_hal::Config::default();
+        config.cpu_clock = CpuClock::max();
+        config
+    });
 
-esp_println::logger::init_logger_from_env();
+    esp_alloc::heap_allocator!(72 * 1024);
 
-let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
-esp_hal_embassy::init(timer0.timer0);
+    esp_println::logger::init_logger_from_env();
 
-let mut rng = Rng::new(peripherals.RNG);
-let net_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
+    let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
+    esp_hal_embassy::init(timer0.timer0);
 
-info!("Embassy initialized!");
+    let rng = Rng::new(peripherals.RNG);
 
-let timg0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG0);
+    info!("Embassy initialized!");
 
-let wifi_init = &*mk_static!(
-    EspWifiController<'static>,
-    esp_wifi::init(timg0.timer0, rng.clone(), peripherals.RADIO_CLK).unwrap()
-);
+    let timg0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG0);
 
-let wifi = peripherals.WIFI;
+    let wifi_init = lib::mk_static!(
+        EspWifiController<'static>,
+        esp_wifi::init(timg0.timer0, rng, peripherals.RADIO_CLK).unwrap()
+    );
 
-let (wifi_interface, controller) =
-    esp_wifi::wifi::new_with_mode(&wifi_init, wifi, WifiStaDevice).unwrap();
+    let stack = lib::wifi::start_wifi(wifi_init, peripherals.WIFI, rng, &spawner).await;
 
-let dhcp_config = DhcpConfig::default();
-
-let net_config = embassy_net::Config::dhcpv4(dhcp_config);
-
-//  This part different from previous:
-let (stack, runner) = mk_static!(
-    (
-        Stack<'static>,
-        Runner<'static, WifiDevice<'static, WifiStaDevice>>
-    ),
-    embassy_net::new(
-        wifi_interface,
-        net_config,
-        mk_static!(StackResources<3>, StackResources::<3>::new()),
-        net_seed
-    )
-);
-
-spawner.spawn(connection_task(controller)).ok();
-spawner.spawn(net_task(runner)).ok();
-
-loop {
-    if stack.is_link_up() {
-        break;
+    let web_app = lib::web::WebApp::default();
+    for id in 0..lib::web::WEB_TASK_POOL_SIZE {
+        spawner.must_spawn(lib::web::web_task(
+            id,
+            *stack,
+            web_app.router,
+            web_app.config,
+        ));
     }
-    Timer::after(Duration::from_millis(500)).await;
-}
-
-println!("Waiting to get IP address...");
-loop {
-    if let Some(config) = stack.config_v4() {
-        println!("Got IP: {}", config.address);
-        break;
-    }
-    Timer::after(Duration::from_millis(500)).await;
-}
-
-```
-
-The code is almost the same as what we did earlier, with a small change. In the version of embassy-net we are using, we have to initialize the network stack by calling `embassy_net::new`, which returns a tuple containing the stack and runner instances.
-
-### Wi-Fi and Network Tasks
-
-There is no major change in the logic of these two tasks. The only difference is that we are now passing the runner instance to the net_task, unlike before.
-
-```rust
-#[embassy_executor::task]
-async fn connection_task(mut controller: WifiController<'static>) {
-    println!("start connection task");
-    println!("Device capabilities: {:?}", controller.capabilities());
-    loop {
-        match esp_wifi::wifi::wifi_state() {
-            WifiState::StaConnected => {
-                // wait until we're no longer connected
-                controller.wait_for_event(WifiEvent::StaDisconnected).await;
-                Timer::after(Duration::from_millis(5000)).await
-            }
-            _ => {}
-        }
-        if !matches!(controller.is_started(), Ok(true)) {
-            let client_config = Configuration::Client(ClientConfiguration {
-                ssid: SSID.try_into().unwrap(),
-                password: PASSWORD.try_into().unwrap(),
-                ..Default::default()
-            });
-            controller.set_configuration(&client_config).unwrap();
-            println!("Starting wifi");
-            controller.start_async().await.unwrap();
-            println!("Wifi started!");
-        }
-        println!("About to connect...");
-
-        match controller.connect_async().await {
-            Ok(_) => println!("Wifi connected!"),
-            Err(e) => {
-                println!("Failed to connect to wifi: {e:?}");
-                Timer::after(Duration::from_millis(5000)).await
-            }
-        }
-    }
-}
-
-#[embassy_executor::task]
-async fn net_task(runner: &'static mut Runner<'static, WifiDevice<'static, WifiStaDevice>>) -> ! {
-    runner.run().await
+    println!("Web server started...");
 }
 ```

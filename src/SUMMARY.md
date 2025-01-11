@@ -47,6 +47,7 @@
         - [Connecting Wifi](./wifi/embassy/connecting-wifi.md)
         - [HTTP Request](./wifi/embassy/http-request.md)
     - [Webserver on ESP32](./wifi/web-server/index.md)
+        - [Wi-Fi module](./wifi/web-server/wifi.md)
         - [Serve Webpage](./wifi/web-server/serve-website.md)
         - [Exposing to Internet](./wifi/web-server/exposing-to-internet.md)
     - [Static IP](./wifi/static-ip.md)

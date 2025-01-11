@@ -1,9 +1,9 @@
-# Serve Webpage
+# Web Module - Serve Webpage
 
 We have completed the boilerplate for the Wi-Fi connection. Next, we will use the picoserve crate to set up a route for the root URL ("/") that will serve our HTML page.
 
 ## `impl_trait_in_assoc_type` feature
-The picoserve crate requires the use of the `impl_trait_in_assoc_type` feature, which is currently an unstable feature in Rust. To enable this feature, you need to add the following line to the top of your async_main.rs file:
+The picoserve crate requires the use of the `impl_trait_in_assoc_type` feature, which is currently an unstable feature in Rust. To enable this feature, you need to add the following line to the top of your lib.rs file(which we did already):
 ```rust
 #![feature(impl_trait_in_assoc_type)]
 ```
@@ -13,7 +13,7 @@ The picoserve crate requires the use of the `impl_trait_in_assoc_type` feature, 
 The picoserve crate provides various traits to configure routing and other features needed for a web application. The `AppBuilder` trait is used to create a static router without state, while the `AppWithStateBuilder` trait allows for a static router with application state. Since our application only serves a single HTML page and doesn't require state, we will implement the AppBuilder trait.  You can find more examples of how to use picoserve [here](https://github.com/sammhicks/picoserve/tree/development/examples).
 
 ```rust
-struct Application;
+pub struct Application;
 
 impl AppBuilder for Application {
     type PathRouter = impl routing::PathRouter;
@@ -37,53 +37,57 @@ Then, we need to implement the build_app function, which returns a Router instan
 We need to start multiple tasks to handle incoming requests. Soon, we'll create a web_task function(an Embassy task) with a pool size set by a constant value we define now. Then, we'll launch tasks in a loop based on this value, which controls how many tasks can run concurrently.
 
 ```rust
-const WEB_TASK_POOL_SIZE: usize = 2;
+pub const WEB_TASK_POOL_SIZE: usize = 2;
 ```
 
 We have set the pool size to 2. In the picoserve's examples, the pool size is set to 8. You can increase the pool size, but keep in mind that you'll also need to adjust resources like sockets and memory arena accordingly.
 
 
-## Launch the App
-Note: This code should be placed inside the main function after setting up the Wi-Fi tasks and obtaining the IP address.
+## Web Application
 
-We will create an instance of the AppRouter by calling the build_app function. We need to make it static with the help of the make_static macro so that we can use it in multiple asynchronous tasks.
-
-```rust
-let app = picoserve::make_static!(AppRouter<Application>, Application.build_app());
-```
-
-We will configure the server settings with timeouts to control how long to wait before timing out on different operations. These timeouts apply when starting to read a request, waiting to read, or waiting to write the response. If any of these operations take too long, the connection will be closed.
+We will define a WebApp struct that contains an instance of the picoserve router and the configuration.
 
 ```rust
-let config = picoserve::make_static!(
-    picoserve::Config<Duration>,
-    picoserve::Config::new(picoserve::Timeouts {
-        start_read_request: Some(Duration::from_secs(5)),
-        read_request: Some(Duration::from_secs(1)),
-        write: Some(Duration::from_secs(1)),
-    })
-    .keep_connection_alive()
-);
-```
-
-This is straightforward logic. We launch multiple tasks to handle incoming requests based on the pool size we set earlier. For each task, we pass the task id (iteration number), app instance, network stack instance, and server settings.
-
-```rust
-for id in 0..WEB_TASK_POOL_SIZE {
-    spawner.must_spawn(web_task(id, *stack, app, config));
+pub struct WebApp {
+    pub router: &'static Router<<Application as AppBuilder>::PathRouter>,
+    pub config: &'static picoserve::Config<Duration>,
 }
 ```
 
+Next, we implement the Default trait for WebApp and initialize the picoserve Router by calling build_app. We also configure server timeouts to control the duration for operations like reading a request, waiting to read, or waiting to write a response. If any operation exceeds the timeout, the connection will be closed.
+
+
+```rust
+impl Default for WebApp {
+    fn default() -> Self {
+        let router = picoserve::make_static!(AppRouter<Application>, Application.build_app());
+
+        let config = picoserve::make_static!(
+            picoserve::Config<Duration>,
+            picoserve::Config::new(picoserve::Timeouts {
+                start_read_request: Some(Duration::from_secs(5)),
+                read_request: Some(Duration::from_secs(1)),
+                write: Some(Duration::from_secs(1)),
+            })
+            .keep_connection_alive()
+        );
+
+        Self { router, config }
+    }
+}
+```
+ 
 ## Web Task function
 
 We have created an Embassy task and specified the pool size in the attribute. The web server will listen on port 80. For each task, we define the TCP read and write buffers, along with the HTTP buffer. Finally, we call the listen_and_serve function from picoserve to handle incoming requests.
 
 ```rust
+
 #[embassy_executor::task(pool_size = WEB_TASK_POOL_SIZE)]
-async fn web_task(
+pub async fn web_task(
     id: usize,
     stack: Stack<'static>,
-    app: &'static AppRouter<Application>,
+    router: &'static AppRouter<Application>,
     config: &'static picoserve::Config<Duration>,
 ) -> ! {
     let port = 80;
@@ -93,7 +97,7 @@ async fn web_task(
 
     picoserve::listen_and_serve(
         id,
-        app,
+        router,
         config,
         stack,
         port,

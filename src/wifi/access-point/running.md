@@ -3,6 +3,8 @@
 
 We need to pass the environment variables for the Wi-Fi connection. 
 
+Note: This time, you need to provide the Wi-Fi name and password for the network we will create with the ESP32. You can choose any name up to 32 characters and pass a password (or skip it if you commented out the password section in the code).
+
 ```sh
 SSID=YOUR_WIFI_NAME PASSWORD=YOUR_WIFI_PASSWORD  cargo run --release
 ```
