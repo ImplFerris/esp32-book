@@ -29,7 +29,7 @@ impl AppBuilder for Application {
 
 We have created a simple struct that implements the AppBuilder trait. We need to specify the PathRouter type, and we define it as any type that implements the routing::PathRouter trait.
 
-Then, we need to implement the build_app function, which returns a Router instance. We set up a single route for "/," which serves a static HTML page. The content of the HTML page is embedded into the application at compile time using the include_str!("index.html") macro.  Place the "index.html" file in the "src/bin/" folder.
+Then, we need to implement the build_app function, which returns a Router instance. We set up a single route for "/," which serves a static HTML page. The content of the HTML page is embedded into the application at compile time using the include_str!("index.html") macro.  Place the "index.html" file in the "src/" folder.
 
 
 ## Pool size
