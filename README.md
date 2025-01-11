@@ -9,6 +9,15 @@ If you haven't already read the ["The Rust on ESP Book"](https://docs.esp-rs.org
 We will be using one of the development board "ESP32 DevKit V1", which comes with built-in Wi-Fi and Bluetooth capabilities, along with an integrated RF module
 <a href ="./src/images/esp32-devkitv1.jpg"><img style="display: block; margin: auto;width:300px;" src="./src/images/esp32-devkitv1.jpg"/></a>
 
+## How to read?
+
+You can access the MD book here: https://esp32.implrust.com/
+
+or you can run locally
+
+```sh
+mdbook serve --open
+```
 
 ## Datasheets
 For detailed technical information, specifications, and guidelines, refer to the official datasheets:
