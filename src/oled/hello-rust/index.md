@@ -78,7 +78,7 @@ Text::with_baseline("Hello, Rust!", Point::new(0, 16), text_style, Baseline::Top
     .unwrap();
 ```
 
-The baseline is an imaginary line that determines where the text is aligned. We set the baseline, with the x position at 0 and the y position at 16. We also specify how the text should be aligned within this space. Baseline Enum controls how the text is positioned on the OLED. For example, using Baseline::Top aligns the top of the text with the starting point, while Baseline::Bottom aligns the bottom of the text with the starting point. It also has other options like Middle, Alphabetic.
+The baseline is an imaginary line that determines where the text is aligned. We set the baseline, with the x position at 0 and the y position at 16. We also specify how the text should be aligned within this space. Baseline Enum controls how the text is positioned within the baseline. For example, using Baseline::Top aligns the top of the text with the starting point, while Baseline::Bottom aligns the bottom of the text with the starting point. It also has other options like Middle, Alphabetic.
 
 I recommend adjusting the point values and the Baseline value to see how it affects the appearance. The visual changes will provide a better clarity.
 
