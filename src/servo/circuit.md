@@ -7,7 +7,7 @@
 <table style="margin-bottom:20px">
   <thead>
     <tr>
-      <th>Pico Pin</th>
+      <th>ESP32 Pin</th>
       <th style="width: 250px; margin: 0 auto;">Wire</th>
       <th>Servo Motor</th>
       <th>Notes</th>
@@ -50,5 +50,5 @@
   </tbody>
 </table>
 
-<img style="display: block; margin: auto;" alt="pico2" src="./images/connecting-servo-motor-sg90-with-esp32.png"/>
+<img style="display: block; margin: auto;" alt="connecting servo motor with esp32" src="./images/connecting-servo-motor-sg90-with-esp32.png"/>
 

@@ -2,11 +2,17 @@
 
 In this section, we will learn how to create a fading effect(i.e. reducing and increasing the brightness) for an LED using the ESP32. First, we will fade the onboard LED, which is connected to GPIO 2. 
 
-To make the fading effect, we use a technique called PWM (Pulse Width Modulation). You can refer to the intro to the PWM section [here](../core-concepts/pwm/index.md).
+## Prerequisites
+To make the fading effect, we use a technique called PWM (Pulse Width Modulation). 
 
-We will gradually increment the PWM's duty cycle to increase the brightness, then we gradually decrement the PWM duty cycle to  reduce the brightness of the LED. This effectively creates the fading effect on the LED
+Recommended to read these chapters
+- Intro to the PWM section [here](../core-concepts/pwm/index.md).
+- [LEDC](../core-concepts/pwm/led-pwm-controller.md)
+
+We will gradually increment the PWM's duty cycle to increase the brightness, then we gradually decrement the PWM duty cycle to reduce the brightness of the LED. This effectively creates the fading effect on the LED
 
 ## The Eye
+
 "
 Come in close... Closer... 
 
