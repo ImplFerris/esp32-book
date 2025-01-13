@@ -64,4 +64,6 @@
     - [Hello, Rust!](./oled/hello-rust/index.md)
     - [Raw Image](./oled/raw-image/index.md)
         - [Code](./oled/raw-image/code.md)
+        - [MultiByte](./oled/raw-image/multi-byte.md)
+        - [Code](./oled/raw-image/multi-byte-code.md)
 - [Projects](./projects.md)
