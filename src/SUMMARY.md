@@ -62,4 +62,6 @@
     - [Circuit](./oled/circuit.md)
     - [Crates](./oled/crates.md)
     - [Hello, Rust!](./oled/hello-rust/index.md)
+    - [Raw Image](./oled/raw-image/index.md)
+        - [Code](./oled/raw-image/code.md)
 - [Projects](./projects.md)
