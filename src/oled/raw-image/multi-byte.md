@@ -56,3 +56,7 @@ fn main(){
 }
 ```
 
+You dont need to manually create these byte array, you can use an online tool like [imag2bytes](https://implferris.github.io/image2bytes/) to generate the byte array for you.
+
+
+

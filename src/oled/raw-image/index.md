@@ -18,3 +18,4 @@ This is an enlarged illustration. When you see the symbol on the actual display 
 
 ## Reference
 - [Embedded Graphics' ImageRaw Documentation](https://docs.rs/embedded-graphics/latest/embedded_graphics/image/struct.ImageRaw.html) 
+- [Image2Bytes](https://implferris.github.io/image2bytes/): Convert image to Hex byte array
