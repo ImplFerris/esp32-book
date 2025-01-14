@@ -1,7 +1,7 @@
 # Intro
 
-In this book, we use the ESP32 and program it in Rust to explore various exciting projects. ESP32 is one of the go-to choices for IoT applications.
- 
+In this book, we use the ESP32 DevKit v1 with Rust to build simple and fun projects. The ESP32 is a popular microcontroller for IoT applications, and we take a hands-on approach to help you learn by doing. You will explore how to turn on an LED when the room gets darker using an LDR, use an ultrasonic sensor to detect when something is close, control an LED through Wi-Fi, draw images/text on an OLED display, play songs and alarm sound with a buzzer, control a servo motor, and more.
+
 ## Prerequisites
 If you haven't already read the ["The Rust on ESP Book"](https://docs.esp-rs.org/book/introduction.html), I highly recommend doing so first. While this book will cover some aspects of setting up the development environment and basic concepts, it will not go into as much detail to avoid unnecessary repetition, as these topics are already thoroughly explained in the official book.
 
@@ -17,7 +17,6 @@ For detailed technical information, specifications, and guidelines, refer to the
 - [ESP32 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf)
 - [Technical Reference Manual](https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf)
 - [ESP32-WROOM-32 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32_datasheet_en.pdf)
-
 
 ## Breadboard
 The ESP32 devkit is slightly wider than usual. If you use a standard breadboard, you might struggle to fit the board, as I did. To solve this, I bought two mini breadboards, placed the ESP32 between them, and connected each side.
