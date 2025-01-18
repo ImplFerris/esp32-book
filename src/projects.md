@@ -13,3 +13,7 @@ Note: It will contain projects related to all ESP32 families. So may not be exac
 
 ## ESP32C3
 - [ha-vfd-dashboard](https://github.com/Orange-Murker/ha-vfd-dashboard/) A Home Assistant dashboard made using a vacuum fluorescent display
+
+## ESP32-S3
+- [anemometer](https://github.com/taunusflieger/anemometer): ESP32-S3 Espressif based 3D printed Anemometer
+
