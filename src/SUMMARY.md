@@ -96,5 +96,5 @@
         - [AccessBits Calc](./rfid/access-bits-calculator.md)
     - [Write Data](./rfid/write-data.md)
         - [Change Auth Key](./rfid/change-auth-key.md)
-
+    - [Project Ideas](./rfid/project-ideas.md)
 - [Projects](./projects.md)
