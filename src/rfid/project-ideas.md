@@ -34,3 +34,22 @@ I found an interesting video that demonstrates an automatic garage door system u
 
 ### Showcase
 If you create a project based on this idea, feel free to send a pull request with your project link, and we'll feature it here!
+
+
+## 3. Simple Smart Door Lock System with ESP32 and RFID
+
+A door model can be built using a cardboard box, where a servo motor opens the door when the correct key is presented. If the wrong key is used, the door remains closed, and optionally, a buzzer sounds for feedback. You can replicate this project using an ESP32 and Rust. [Watch the video here](https://www.youtube.com/watch?v=3xb2PLFjJxk).
+
+### Components
+- MFRC522 (RFID reader module) & RFID Tags/Cards
+- Servo motor
+- \[Optional\] Buzzer (optional, for audio feedback)
+- Power Supply (e.g., 5V adapter or battery)
+
+
+### Related resources to learn
+- [Servo motor](../servo/index.md)
+
+
+### Showcase
+If you create a project based on this idea, feel free to send a pull request with your project link, and we'll feature it here!
