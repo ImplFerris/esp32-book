@@ -18,3 +18,5 @@ Note: It will contain projects related to all ESP32 families. So may not be exac
 ## ESP32-S3
 - [anemometer](https://github.com/taunusflieger/anemometer): ESP32-S3 Espressif based 3D printed Anemometer
 
+## General
+- [esp32-spooky-maze-game](https://github.com/georgik/esp32-spooky-maze-game): Rust Bare Metal implementation of maze game for ESP32
