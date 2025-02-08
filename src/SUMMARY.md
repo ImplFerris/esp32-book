@@ -102,4 +102,5 @@
     - [Pin layout](./joystick/pin-layout.md)
     - [Circuit](./joystick/circuit.md)
     - [Print ADC Values](./joystick/print-adc-values.md)
+- [Bluetooth](./bluettoh/index.md)
 - [Projects](./projects.md)
