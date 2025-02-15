@@ -122,7 +122,7 @@ let mut write_func2 = |offset: usize, data: &[u8]| {
 };
 ```
 
-## Define Services and Characteristics
+## Define Service and Characteristics
 
 We will use the `gatt` macro to define a service with two characteristics. We will set the first characteristic to allow both read and write and pass the read and write closures to it. We will set the second characteristic to allow only write and pass the second write closure to it.
 
@@ -166,6 +166,9 @@ cd esp32-projects/bluetooth-low-energy/
 
 ## How to use?
 Once you flash the code to the ESP32, open the nRF Connect mobile app. Scan for the Bluetooth name we set (mine is "implRust") and connect to it. The app will show the supported service and characteristics. Tap the down arrow under a characteristic to read data and the up arrow to write data.
+
+<img style="display: block; margin: auto;" alt="BLE nRF Connect mobile" src="../images/ble-nrf-mobile.png"/>
+
 
 If you send(i.e write) data, you will see it in the system console.
 

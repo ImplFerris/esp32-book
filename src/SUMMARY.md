@@ -107,4 +107,5 @@
         - [GAP](./bluetooth/ble/gap.md)
         - [GATT](./bluetooth/ble/gatt.md)
         - [Code](./bluetooth/ble/code.md)
+        - [Notification](./bluetooth/ble/notification.md)
 - [Projects](./projects.md)
