@@ -1,6 +1,6 @@
-# Buzzinga
+# Buzzer
 
-In this section, we will explore some fun activities using the `buzzer`. I chose the title "Buzzinga" just for fun (a nod to Sheldon's "Bazinga" in *The Big Bang Theory*); it's not a technical term.
+In this section, we will explore some fun activities using the `buzzer`.
 
 - **Active or Passive Buzzer**
 - **Jumper Wires**:
