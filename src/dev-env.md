@@ -20,4 +20,19 @@ cargo binstall espflash
 After installation, type the espflash command to verify that it works.
 
 
+## Toolchains for RISC-V and Xtensa Targets
+
+You will also need `espup` to install the necessary toolchains. You can find details [here](https://docs.esp-rs.org/book/installation/riscv-and-xtensa.html).
+
+```sh
+cargo install espup
+espup install
+```
+
+If you want to use the project I created as it is, you might need the exact Rust toolchain version. You can use this command:
+```rust
+espup install --toolchain-version 1.82.0
+```
+
+However, I recommend reading the book, understand the concepts and code, and apply them to a newer version. You might face challenges, but you'll learn and even contribute back to this book 😉.
 
