@@ -36,3 +36,5 @@ espup install --toolchain-version 1.82.0
 
 However, I recommend reading the book, understand the concepts and code, and apply them to a newer version. You might face challenges, but you'll learn and even contribute back to this book 😉.
 
+**NOTE:** Install this specific version **only** if you plan to clone and run the project examples exactly as they are. Otherwise, install the latest version.  Using a mismatched version may lead to weird errors (eg: error: asm! macro is not allowed in naked functions)
+
