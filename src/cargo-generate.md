@@ -28,6 +28,12 @@ The **esp-generate** tool is used for creating `no_std` applications. Currently,
 cargo install esp-generate
 ```
 
+If you want to follow the code exactly as it is in this project, install this esp-generate version used for generating the examples:
+```sh
+cargo install esp-generate@0.2.1
+```
+The related rust toolchain for this version is 1.82.0
+
 
 ### Creating project with `esp-generate`
 For this book, we will be using the ESP32. I highly recommend using the same hardware to make it easier to follow along.
