@@ -10,10 +10,11 @@ Note: It will contain projects related to all ESP32 families. So may not be exac
 - [ESP32 Wi-Fi Tank](https://github.com/jamesmcm/esp32_wifi_tank): A Wifi-controlled tank/rover built with an ESP32 control board and Rust
 - [Solar Inverter](https://github.com/Orange-Murker/solar_inverter): Grid-Tie Solar Inverter with MPPT
 - [Paper train](https://github.com/vhdirk/papertrain): Displays NMBS train delays on an e-ink display, driven by an esp32
-
+- [Snake Game](https://jamesmcm.github.io/blog/beginner-rust-esp32-lcdsnake/): write a Snake game to run on an ESP32 development board with a connected OLED display and controlled with a joystick
 
 ## ESP32C3
 - [ha-vfd-dashboard](https://github.com/Orange-Murker/ha-vfd-dashboard/) A Home Assistant dashboard made using a vacuum fluorescent display
+- [ESP32-C3 Embassy](https://github.com/claudiomattera/esp32c3-embassy):  samples environment data (temperature, humidity, pressure) from a BME280 sensor over I²C, and displays the latest sample on a WaveShare 1.54 inches model B version 2 E-INK display over SPI.
 
 ## ESP32-S3
 - [anemometer](https://github.com/taunusflieger/anemometer): ESP32-S3 Espressif based 3D printed Anemometer
