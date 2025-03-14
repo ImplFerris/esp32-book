@@ -10,7 +10,7 @@ To create the project, use the `esp-generate` command. Run the following:
 esp-generate --chip esp32 buzzer-song
 ```
 
-This will open a screen asking you to select options.  In the latest esp-hal, ledc requires us to enable the unstable features. 
+This will open a screen asking you to select options.  In the latest esp-hal, ledc requires us to explicitly enable the unstable features. 
 
 - So you select the option "Enable unstable HAL features."
 
