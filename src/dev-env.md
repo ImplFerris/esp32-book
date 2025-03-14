@@ -69,5 +69,5 @@ espup install --toolchain-version 1.82.0
 When you create a project with the esp-generate, it automatically sets "esp" as the toolchain channel. If you want to "clone" and use existing projects instead of creating one from scratch, you need to specify the toolchain name as "book-0.22" (as the project's rust-toolchain.toml configured with toolchain name book-0.22). This applies only if you're cloning a project from the esp32-projects repository and want to run it without any modifications.
 
 ```sh
-espup install --name book-0.22 --toolchain-version 1.82.0
+espup install --name book-1.0.0-beta --toolchain-version 1.84.0
 ```

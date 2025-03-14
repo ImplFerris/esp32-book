@@ -1,4 +1,4 @@
-# impl Rust on ESP32
+# impl Rust for ESP32
 
 In this book, we use the ESP32 DevKit v1 with Rust to build simple and fun projects. The ESP32 is a popular microcontroller for IoT applications, and we take a hands-on approach to help you learn by doing. You will explore how to turn on an LED when the room gets darker using an LDR, use an ultrasonic sensor to detect when something is close, control an LED through Wi-Fi, draw images/text on an OLED display, play songs and alarm sound with a buzzer, control a servo motor, and more.
 
@@ -27,7 +27,7 @@ For detailed technical information, specifications, and guidelines, refer to the
 
 ## License
 
-The impl Rust on ESP32 book(this project) is distributed under the following licenses:
+The "impl Rust for ESP32" book(this project) is distributed under the following licenses:
 
 * The code samples and free-standing Cargo projects contained within this book are licensed under the terms of both the [MIT License] and the [Apache License v2.0].
 * The written prose contained within this book is licensed under the terms of the Creative Commons [CC-BY-SA v4.0] license.

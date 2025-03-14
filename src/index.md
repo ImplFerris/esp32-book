@@ -29,7 +29,7 @@ In the picture, the bottom section shows how I connected the ESP32 to the two br
 
 ## License
 
-The impl Rust on ESP32 book(this project) is distributed under the following licenses:
+The "impl Rust for ESP32" book(this project) is distributed under the following licenses:
 
 * The code samples and free-standing Cargo projects contained within this book are licensed under the terms of both the [MIT License] and the [Apache License v2.0].
 * The written prose contained within this book is licensed under the terms of the Creative Commons [CC-BY-SA v4.0] license.
