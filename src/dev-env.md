@@ -34,9 +34,9 @@ cargo install esp-generate
 
 If you want to follow the code exactly as it is in this project, install this esp-generate version used for generating the examples:
 ```sh
-cargo install esp-generate@0.2.1
+cargo install esp-generate@0.3.1
 ```
-The related rust toolchain for this version is 1.82.0
+The related rust toolchain for this version is 1.84.0
 
 
 ### Creating project with `esp-generate`
@@ -59,7 +59,7 @@ espup install
 
 If you want to use the project I created as it is, you might need the exact Rust toolchain version. You can use this command:
 ```sh
-espup install --toolchain-version 1.82.0
+espup install --toolchain-version 1.84.0
 ```
 
 **NOTE:** Install this specific version **only** if you plan to clone and run the project examples exactly as they are. Using a mismatched version may lead to weird errors (example error: asm! macro is not allowed in naked functions)

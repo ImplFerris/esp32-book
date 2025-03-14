@@ -16,7 +16,7 @@ To start the project, use the `esp-generate` command. Run the following:
 esp-generate --chip esp32 blinky-embassy
 ```
 
-This will open a screen asking you to select options. But, this time we select "Adds `embassy` framework support" and save it to generate the project template with support of embassy.
+This will open a screen prompting you to select options. This time, choose "Adds embassy framework support" and save to generate the project template with Embassy support. However, if you find that the "embassy" option is unavailable, first enable "Enable unstable HAL features", then proceed with selecting "embassy" support.
 
 If you notice, the main function is now marked as async, along with a few other changes in the code. However, the core logic for blinking the LED remains the same.
 
@@ -27,37 +27,34 @@ If you notice, the main function is now marked as async, along with a few other 
 #![no_main]
 
 use embassy_executor::Spawner;
-use embassy_time::Timer;
-use esp_backtrace as _;
-use esp_hal::{
-    gpio::{Io, Level, Output},
-    prelude::*,
-};
-use log::info;
+use embassy_time::{Duration, Timer};
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::timer::timg::TimerGroup;
 
-#[main]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_println::logger::init_logger_from_env();
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    let timg0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG0);
-    esp_hal_embassy::init(timg0.timer0);
-    info!("Embassy initialized!");
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
+    esp_hal_embassy::init(timer0.timer0);
 
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = Output::new(io.pins.gpio2, Level::High);
+    let mut led = Output::new(peripherals.GPIO2, Level::High, OutputConfig::default());
+
     loop {
-        led.set_high();
-        Timer::after_millis(500).await;
-
-        led.set_low();
-        Timer::after_millis(500).await;
+        led.toggle();
+        Timer::after(Duration::from_secs(1)).await;
     }
+
+    // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.0.0-beta.0/examples/src/bin
 }
 ```
 
