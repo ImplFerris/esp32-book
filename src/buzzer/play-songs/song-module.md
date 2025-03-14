@@ -1,4 +1,4 @@
-# Melody Example: Pink Panther Theme
+# Melody Example: Pink Panther Theme (pink_panther.rs)
 
 These section contains code snippets for the rust module `pink_panther`.  If you want other songs/bgms notes, you can refer the [Rust Embedded Songs](https://github.com/ImplFerris/rust-embedded-songs/) repository
 

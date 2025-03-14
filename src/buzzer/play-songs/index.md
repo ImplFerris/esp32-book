@@ -17,3 +17,13 @@ I recommend reading the [PWM section](../../core-concepts/pwm/index.md) to famil
 ## Song Repository
 
 We will playing the Pink Panther theme in this exercise. However, you can refer to the rust-embedded-songs [repository](https://github.com/ImplFerris/rust-embedded-songs/) i created and use different songs also.
+
+
+## lib.rs submodules
+Update lib.rs to define the submodule, then create the `music.rs` and `pink_panther.rs` files.
+
+```rust
+#![no_std]
+pub mod music;
+pub mod pink_panther;
+```
