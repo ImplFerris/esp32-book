@@ -13,7 +13,11 @@ To create the project, use the `esp-generate` command. Run the following:
 esp-generate --chip esp32 ultrasonic
 ```
 
-This will open a screen asking you to select options. For now, we dont need to select any options. Just save it by pressing "s" in the keyboard.
+This will open a screen asking you to select options. In the latest esp-hal, ledc requires us to enable the unstable features. 
+
+- So you select the option "Enable unstable HAL features."
+
+Then save it by pressing "s" in the keyboard.
 
 ## Setup the LED Pin and configure PWM
 You should understand this code by now. If not, please complete the Fading [LED section](../led/index.md) first.
@@ -21,21 +25,24 @@ You should understand this code by now. If not, please complete the Fading [LED 
 Quick recap: Here, we're configuring the PWM for the LED, which allows us to control the brightness by adjusting the duty cycle.
 
 ```rust
-let led = peripherals.GPIO33;
-let ledc = Ledc::new(peripherals.LEDC);
-let mut hstimer0 = ledc.timer::<HighSpeed>(timer::Number::Timer0);
-hstimer0
+// let led = peripherals.GPIO2; // uses onboard LED
+    let led = peripherals.GPIO33;
+
+// Configure LEDC
+let mut ledc = Ledc::new(peripherals.LEDC);
+ledc.set_global_slow_clock(LSGlobalClkSource::APBClk);
+let mut lstimer0 = ledc.timer::<LowSpeed>(timer::Number::Timer0);
+lstimer0
     .configure(timer::config::Config {
         duty: timer::config::Duty::Duty5Bit,
-        clock_source: timer::HSClockSource::APBClk,
-        frequency: 24.kHz(),
+        clock_source: timer::LSClockSource::APBClk,
+        frequency: Rate::from_khz(24),
     })
     .unwrap();
-
 let mut channel0 = ledc.channel(channel::Number::Channel0, led);
 channel0
     .configure(channel::config::Config {
-        timer: &hstimer0,
+        timer: &lstimer0,
         duty_pct: 10,
         pin_config: channel::config::PinConfig::PushPull,
     })
@@ -46,14 +53,17 @@ channel0
 We will configure GPIO 5 as an output pin with its initial state set to LOW. If you're wondering why it's an output, it's because we are sending a signal from the ESP32 to the ultrasonic module. This pin is connected to the Trig pin of the ultrasonic module.
  
 ```rust
- let mut trig = Output::new(peripherals.GPIO5, Level::Low);
+let mut trig = Output::new(peripherals.GPIO5, Level::Low, OutputConfig::default());
 ```
 
 ## Setup the Echo Pin
 We will configure GPIO 18 as an input pin since the ultrasonic module sends the signal back to the ESP32. The initial state of this pin will be set to Pull Down to ensure it starts in the low state.
 
 ```rust
-let echo = Input::new(peripherals.GPIO18, Pull::Down);
+let echo = Input::new(
+    peripherals.GPIO18,
+    InputConfig::default().with_pull(Pull::Down),
+);
 ```
 
 ## 🦇 Light it Up 
@@ -123,53 +133,67 @@ if let Err(e) = channel0.set_duty(duty_pct) {
 #![no_std]
 #![no_main]
 
-use esp_backtrace as _;
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{InputConfig, OutputConfig};
+use esp_hal::ledc::{LSGlobalClkSource, LowSpeed};
+use esp_hal::main;
+use esp_hal::time::Rate;
+
 use esp_hal::{
     delay::Delay,
     gpio::{Input, Level, Output, Pull},
     ledc::{
         channel::{self, ChannelIFace},
         timer::{self, TimerIFace},
-        HighSpeed, Ledc,
+        Ledc,
     },
-    prelude::*,
     rtc_cntl::Rtc,
 };
 
-#[entry]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[main]
 fn main() -> ! {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
+
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
     // let led = peripherals.GPIO2; // uses onboard LED
     let led = peripherals.GPIO33;
-    let ledc = Ledc::new(peripherals.LEDC);
-    let mut hstimer0 = ledc.timer::<HighSpeed>(timer::Number::Timer0);
-    hstimer0
+
+    // Configure LEDC
+    let mut ledc = Ledc::new(peripherals.LEDC);
+    ledc.set_global_slow_clock(LSGlobalClkSource::APBClk);
+    let mut lstimer0 = ledc.timer::<LowSpeed>(timer::Number::Timer0);
+    lstimer0
         .configure(timer::config::Config {
             duty: timer::config::Duty::Duty5Bit,
-            clock_source: timer::HSClockSource::APBClk,
-            frequency: 24.kHz(),
+            clock_source: timer::LSClockSource::APBClk,
+            frequency: Rate::from_khz(24),
         })
         .unwrap();
-
     let mut channel0 = ledc.channel(channel::Number::Channel0, led);
     channel0
         .configure(channel::config::Config {
-            timer: &hstimer0,
+            timer: &lstimer0,
             duty_pct: 10,
             pin_config: channel::config::PinConfig::PushPull,
         })
         .unwrap();
 
     // For HC-SR04 Ultrasonic
-    let mut trig = Output::new(peripherals.GPIO5, Level::Low);
-    let echo = Input::new(peripherals.GPIO18, Pull::Down);
+    let mut trig = Output::new(peripherals.GPIO5, Level::Low, OutputConfig::default());
+    let echo = Input::new(
+        peripherals.GPIO18,
+        InputConfig::default().with_pull(Pull::Down),
+    );
 
-    let delay = Delay::new();
+    let delay = Delay::new(); // We can use this since we are using unstable features
+
     let rtc = Rtc::new(peripherals.LPWR);
 
     loop {
@@ -207,13 +231,13 @@ fn main() -> ! {
         };
 
         if let Err(e) = channel0.set_duty(duty_pct) {
-            esp_println::println!("Failed to set duty cycle: {:?}", e);
+            // esp_println::println!("Failed to set duty cycle: {:?}", e);
+            panic!("Failed to set duty cycle: {:?}", e);
         }
 
         delay.delay_millis(60);
     }
 }
-
 ```
 
 ## Clone the existing project

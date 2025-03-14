@@ -8,12 +8,26 @@ The circuit is almost the same as before. The only difference is that you need t
 
 <img style="display: block; margin: auto;" alt="hc-sr04 with buzzer and ESP32 circuit" src="./images/ESP32-HC-SR04-circuit-buzzer.png"/>
 
+
+### Generate project using esp-generate
+
+You have done this step already in the quick start section. 
+
+To create the project, use the `esp-generate` command. Run the following:
+
+```sh
+esp-generate --chip esp32 ultrasonic
+```
+
+This will open a screen asking you to select options. We don't need unstable or any other features. So just save it by pressing "s" in the keyboard.
+
+
 ## Code
 
 We will set GPIO 33 as our output pin with an initial Low state. This is the same as the LED code; the only change is the variable name. 
    
 ```rust
-let mut buzzer = Output::new(peripherals.GPIO33, Level::Low);
+let mut buzzer = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
 ```
 
 We won't need the timer or PWM configurations we used for the LED. Instead, we will set the buzzer to High (it will make a sound when it is High) if the distance is less than 30cm; otherwise, it will remain Low.
@@ -32,53 +46,50 @@ if distance < 30.0 {
 #![no_std]
 #![no_main]
 
-use esp_backtrace as _;
-use esp_hal::{
-    delay::Delay,
-    gpio::{Input, Level, Output, Pull},
-    prelude::*,
-    rtc_cntl::Rtc,
-};
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
+use esp_hal::main;
+use esp_hal::time::{Duration, Instant};
 
-#[entry]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[main]
 fn main() -> ! {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    let mut buzzer = Output::new(peripherals.GPIO33, Level::Low);
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
+
+    let mut buzzer = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
 
     // For HC-SR04 Ultrasonic
-    let mut trig = Output::new(peripherals.GPIO5, Level::Low);
-    let echo = Input::new(peripherals.GPIO18, Pull::Down);
-
-    let delay = Delay::new();
-    let rtc = Rtc::new(peripherals.LPWR);
+    let mut trig = Output::new(peripherals.GPIO5, Level::Low, OutputConfig::default());
+    let echo = Input::new(
+        peripherals.GPIO18,
+        InputConfig::default().with_pull(Pull::Down),
+    );
 
     loop {
-        delay.delay_millis(5);
+        blocking_delay(Duration::from_millis(5));
 
         // Trigger ultrasonic waves
         trig.set_low();
-        delay.delay_micros(2);
+        blocking_delay(Duration::from_micros(2));
         trig.set_high();
-        delay.delay_micros(10);
+        blocking_delay(Duration::from_micros(10));
         trig.set_low();
 
         // Measure the duration the signal remains high
         while echo.is_low() {}
-        let time1 = rtc.current_time();
+        let time1 = Instant::now();
         while echo.is_high() {}
-        let time2 = rtc.current_time();
-        let pulse_width = match (time2 - time1).num_microseconds() {
-            Some(pw) => pw as f64,
-            None => continue,
-        };
+        let pulse_width = time1.elapsed().as_micros();
 
         // Derive distance from the pulse width
-        let distance = (pulse_width * 0.0343) / 2.0;
+        let distance = (pulse_width as f64 * 0.0343) / 2.0;
         // esp_println::println!("Pulse Width: {}", pulse_width);
         // esp_println::println!("Distance: {}", distance);
 
@@ -88,7 +99,22 @@ fn main() -> ! {
             buzzer.set_low();
         }
 
-        delay.delay_millis(60);
+        blocking_delay(Duration::from_millis(60));
     }
 }
+
+fn blocking_delay(duration: Duration) {
+    let delay_start = Instant::now();
+    while delay_start.elapsed() < duration {}
+}
+
 ```
+
+
+## Clone the existing project
+You can clone (or refer) project I created and navigate to the `ultrasonic-alert` folder.
+
+```sh
+git clone https://github.com/ImplFerris/esp32-projects/ultrasonic
+cd esp32-projects/ultrasonic-alert
+``` 

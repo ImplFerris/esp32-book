@@ -12,7 +12,7 @@ To create the project, use the `esp-generate` command. Run the following:
 esp-generate --chip esp32 led-fader
 ```
 
-This will open a screen asking you to select options. For now, we dont need to select any options. In the latest esp-hal, ledc requires us to enable the unstable features. 
+This will open a screen asking you to select options.  In the latest esp-hal, ledc requires us to enable the unstable features. 
 
 - So you select the option "Enable unstable HAL features."
 
