@@ -31,3 +31,8 @@ You have two options:
 
 Your code editor should typically assist with imports. However, in some cases, it might not work as expected. You can always cross-check your code with the "full code" section or clone the project to compare and add any missing imports.
 
+### 5. Where can I find the documentation for esp-hal?
+You can find the official documentation for esp-hal at the following link:
+
+👉 [ESP-HAL Documentation](https://docs.espressif.com/projects/rust/esp-hal/1.0.0-beta.0/)
+
