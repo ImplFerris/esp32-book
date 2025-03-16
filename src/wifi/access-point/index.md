@@ -14,7 +14,9 @@ esp-generate --chip esp32 wifi-ap
 
 This will open a screen asking you to select options. 
 
-- Select the option "Enables Wi-Fi via the esp-wifi crate. Requires alloc".  It automatically selects the espa-alloc crate option also
+- First, select the option "Enable unstable HAL features."
+- Select the option "Enable allocations via the esp-alloc crate."
+- Now, you can enable "Enable Wi-Fi via esp-wifi crate."
 - Select the option "Adds embassy framework support".
 
 Just save it by pressing "s" in the keyboard.

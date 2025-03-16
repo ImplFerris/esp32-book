@@ -11,8 +11,8 @@ esp-generate --chip esp32 oled-image
 
 This will open a screen asking you to select options. 
 
-- Select the option "Enables Wi-Fi via the esp-wifi crate. Requires alloc".  It automatically selects the espa-alloc crate option also
-- Select the option "Adds embassy framework support".
+- Select the option "Enable unstable HAL features"
+- Then, select the option "Adds embassy framework support".
 
 Just save it by pressing "s" in the keyboard.
 
