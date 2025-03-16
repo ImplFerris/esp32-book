@@ -45,31 +45,19 @@ We will create a simple web server, just like in the previous exercises. Therefo
 [picoserve](https://docs.rs/picoserve/latest/picoserve/) is a crate that provides an asynchronous HTTP server designed for bare-metal environments, heavily inspired by Axum. As you might have guessed from the name, it was first created with "Raspberry Pi Pico W" and embassy in mind. But it works fine with other embedded runtimes and hardware, including the ESP32. This crate makes our lives much easier. Without it, we would have to build the web server core from scratch, a time-consuming task that would be beyond the scope of this book.
 
 ```toml
-picoserve = { version = "0.13.3", features = ["embassy"] }
+picoserve = { version = "0.15.0", features = ["embassy"] }
 ```
 
 ### Task arena size update
 We will update the embassy-executor with the task-arena-size-65536 feature. For more details, refer to the Task Arena Size documentation [here](https://docs.embassy.dev/embassy-executor/git/cortex-m/index.html#task-arena).
 
 ```toml
-embassy-executor = { version = "0.6.3", features = ["task-arena-size-65536"] }
-```
-
-### Update the embassy-net
-To make some functions compatible with the latest picoserve crate, I needed to update embassy-net to version 0.5.0.
-
-```toml
-embassy-net = { version = "0.5.0", features = [
-    "tcp",
-    "udp",
-    "dhcpv4",
-    "medium-ethernet",
-] }
+embassy-executor = { version = "0.7.0", features = ["task-arena-size-65536"] }
 ```
 
 ### Anyhow
 
-This time, we will use anyhow::Error to handle errors in our code. You can achieve the same result without it, but I want to demonstrate how we can use anyhow for error handling. This library provides anyhow::Error, a trait object based error type that makes error handling in Rust applications easier and more idiomatic.
+This time, we will use anyhow::Error to handle errors in our code. You can achieve the same result without it, but I want to demonstrate how we can use anyhow for error handling in embedded environment also. This library provides anyhow::Error, a trait object based error type that makes error handling in Rust applications easier and more idiomatic.
 
 ```rust
 anyhow = { version = "1.0.95", default-features = false }
@@ -109,16 +97,18 @@ use wifi_ap as lib;
 To initialize the Wi-Fi controller, we first set up the necessary peripherals, including the timer, random number generator, and radio clock. 
 
 ```rust
+let timer1 = TimerGroup::new(peripherals.TIMG0);
+// let _init = esp_wifi::init(
+//     timer1.timer0,
+//     esp_hal::rng::Rng::new(peripherals.RNG),
+//     peripherals.RADIO_CLK,
+// )
+// .unwrap();
+
 let rng = Rng::new(peripherals.RNG);
-let timg0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG0);
-let wifi_init = lib::mk_static!(
+let esp_wifi_ctrl = &*lib::mk_static!(
     EspWifiController<'static>,
-    esp_wifi::init(
-        timg0.timer0,
-        rng,
-        peripherals.RADIO_CLK,
-    )
-    .unwrap()
+    esp_wifi::init(timer1.timer0, rng.clone(), peripherals.RADIO_CLK,).unwrap()
 );
 ```
 
@@ -128,12 +118,18 @@ Next, we create the Wi-Fi stack by calling the start_wifi function, which we wil
 
 ```rust
     // Configure and Start Wi-Fi tasks
-    let stack = lib::wifi::start_wifi(wifi_init, peripherals.WIFI, rng, &spawner).await.unwrap();
+    let stack = lib::wifi::start_wifi(esp_wifi_ctrl, peripherals.WIFI, rng, &spawner).await.unwrap();
 
     // Web Tasks
-    let web = lib::web::WebApp::default();
+    let web_app = lib::web::WebApp::default();
     for id in 0..lib::web::WEB_TASK_POOL_SIZE {
-        spawner.must_spawn(lib::web::web_task(id, *stack, web.app, web.config));
+        spawner.must_spawn(lib::web::web_task(
+            id,
+            stack,
+            web_app.router,
+            web_app.config,
+        ));
     }
-    println!("Web server started...");
+    info!("Web server started...");
+
 ```
