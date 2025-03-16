@@ -12,9 +12,11 @@ esp-generate --chip esp32 hello-oled
 
 This will open a screen asking you to select options. 
 
+- Select the option "Enables Wi-Fi via the esp-wifi crate. Requires alloc".  It automatically selects the espa-alloc crate option also
 - Select the option "Adds embassy framework support".
 
 Just save it by pressing "s" in the keyboard.
+
 
 ## Update Cargo.toml
 
@@ -29,16 +31,15 @@ embedded-graphics = "0.8.1"
 We initialize the I2C interface for communication between the ESP32 and the OLED display. The I2C bus is configured with a frequency of 400 kHz and a timeout of 100 bus clock cycles. We assign GPIO18 to the SCL (Serial Clock Line) and GPIO23 to the SDA (Serial Data Line) for I2C communication, and enable async operation for the interface.
 
 ```rust
-let i2c0 = esp_hal::i2c::master::I2c::new(
+let i2c_bus = esp_hal::i2c::master::I2c::new(
     peripherals.I2C0,
-    esp_hal::i2c::master::Config {
-        frequency: 400.kHz(),
-        timeout: Some(100),
-    },
+    esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
 )
+.unwrap()
 .with_scl(peripherals.GPIO18)
 .with_sda(peripherals.GPIO23)
 .into_async();
+
 ```
 
 ## Initialize ssd1306 driver
@@ -55,7 +56,7 @@ We will use the BufferedGraphicsMode for this exercise.
 Next, we call the init() function to initialize and clear the display in graphics mode.
 
 ```rust
-let interface = I2CDisplayInterface::new(i2c0);
+let interface = I2CDisplayInterface::new(i2c_bus);
 // initialize the display
 let mut display = Ssd1306Async::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
     .into_buffered_graphics_mode();
@@ -106,51 +107,50 @@ cd esp32-projects/hello-oled
 #![no_std]
 #![no_main]
 
+use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use embedded_graphics::{
-    mono_font::{ascii::FONT_6X10, MonoTextStyleBuilder},
-    pixelcolor::BinaryColor,
-    prelude::Point,
-    text::{Baseline, Text},
-};
-use esp_backtrace as _;
-use esp_hal::prelude::*;
-use log::info;
-use ssd1306::{
-    mode::DisplayConfigAsync, prelude::DisplayRotation, size::DisplaySize128x64,
-    I2CDisplayInterface, Ssd1306Async,
-};
-
+use embedded_graphics::mono_font::{ascii::FONT_6X10, MonoTextStyleBuilder};
+use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::prelude::Point;
 use embedded_graphics::prelude::*;
+use embedded_graphics::text::{Baseline, Text};
+use esp_hal::timer::timg::TimerGroup;
+use esp_hal::{clock::CpuClock, time::Rate};
+use esp_println as _;
+use ssd1306::mode::DisplayConfigAsync;
+use ssd1306::{
+    prelude::DisplayRotation, size::DisplaySize128x64, I2CDisplayInterface, Ssd1306Async,
+};
 
-#[main]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_println::logger::init_logger_from_env();
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
     esp_hal_embassy::init(timer0.timer0);
 
     info!("Embassy initialized!");
 
-    let i2c0 = esp_hal::i2c::master::I2c::new(
+    let i2c_bus = esp_hal::i2c::master::I2c::new(
         peripherals.I2C0,
-        esp_hal::i2c::master::Config {
-            frequency: 400.kHz(),
-            timeout: Some(100),
-        },
+        esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
     )
+    .unwrap()
     .with_scl(peripherals.GPIO18)
     .with_sda(peripherals.GPIO23)
     .into_async();
 
-    let interface = I2CDisplayInterface::new(i2c0);
+    let interface = I2CDisplayInterface::new(i2c_bus);
+
     // initialize the display
     let mut display = Ssd1306Async::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
