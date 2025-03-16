@@ -30,7 +30,7 @@ We will create two additional modules: web and wifi. These will be similar to wh
 ├── rust-toolchain.toml
 ├── src
 │   ├── bin
-│   │   └── async_main.rs
+│   │   └── main.rs
 │   ├── lib.rs
 │   ├── web.rs
 │   └── wifi.rs
