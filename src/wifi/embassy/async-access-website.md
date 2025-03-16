@@ -11,13 +11,19 @@ To create the project, use the `esp-generate` command. Run the following:
 esp-generate --chip esp32 wifi-async-http
 ```
 
-This will open a screen asking you to select options. 
+This will open a screen asking you to select options. In order to Enable Wi-Fi, we will first need to enable "unstable" and "alloc" features. If you noticed, until you select these two options, you wont be able to enable Wi-Fi option. So select one by one
 
-- Select the option "Enables Wi-Fi via the esp-wifi crate. Requires alloc".  It automatically selects the espa-alloc crate option also
+- First, select the option "Enable unstable HAL features."
+- Select the option "Enable allocations via the esp-alloc crate."
+- Now, you can enable "Enable Wi-Fi via esp-wifi crate."
 - Select the option "Adds embassy framework support".
 
-Just save it by pressing "s" in the keyboard.
+Enable the logging feature also
 
+- So, scroll to "Flashing, logging and debugging (espflash)" and hit Enter.
+- Then, Select "Use defmt to print messages".
+
+Just save it by pressing "s" in the keyboard.
 
 ## Update dependencies
 
@@ -29,7 +35,7 @@ This crate automatically gets added when you select the Wi-Fi and Embassy option
 
 ```toml
 # Updated embassy-net in Cargo.toml
-embassy-net = { version = "0.4.0", features = [
+embassy-net = { version = "0.6.0", features = [
     "tcp",
     "udp",
     "dhcpv4",
@@ -62,7 +68,7 @@ smoltcp = { version = "0.11.0", default-features = false, features = [
 ### Embassy Executor
 embassy-executor crate is an async/await executor specifically designed for embedded systems.
 
-"When the nightly Cargo feature is not enabled, embassy-executor allocates tasks out of an arena (a very simple bump allocator)."  We can specify the arena size via environment settings or as a feature flag. When we enabled Embassy support, it added the `task-arena-size-12288` feature. But for our task, this won't be enough, so we will use the `task-arena-size-32768` feature instead. You can read more about this [here](https://docs.embassy.dev/embassy-executor/git/cortex-m/index.html#task-arena).
+"When the nightly Cargo feature is not enabled, embassy-executor allocates tasks out of an arena (a very simple bump allocator)."  We can specify the arena size via environment settings or as a feature flag. When we enabled Embassy support, it added the `task-arena-size-20480` feature. But for our task, this won't be enough, so we will use the `task-arena-size-32768` feature instead. You can read more about this [here](https://docs.embassy.dev/embassy-executor/git/cortex-m/index.html#task-arena).
 
 ```toml
 embassy-executor = { version = "0.6.0", features = ["task-arena-size-32768"] }
@@ -72,7 +78,7 @@ embassy-executor = { version = "0.6.0", features = ["task-arena-size-32768"] }
 The reqwless crate is an HTTP client for embedded systems, working with any transport that implements traits from the embedded-io crate.
 
 ```toml
-reqwless = { version = "0.12.0", default-features = false, features = [
+reqwless = { version = "0.13.0", default-features = false, features = [
     "embedded-tls",
 ] }
 ```

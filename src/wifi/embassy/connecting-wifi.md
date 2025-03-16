@@ -33,13 +33,6 @@ let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
 esp_hal_embassy::init(timer0.timer0);
 ```
 
-We need a random number for both the TLS configuration and network stack initialization, and both require a u64. However, since rng generates only u32 values, we generate two random numbers and place one in the most significant bits (MSB) and the other in the least significant bits (LSB) using bitwise operation:
-
-```rust
-let mut rng = Rng::new(peripherals.RNG);
-let net_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
-let tls_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
-```
 
 
 ## Initializing the Wi-Fi Controller
@@ -55,73 +48,90 @@ First, we initialize the TimerGroup required for setting up the Wi-Fi controller
 The reason why we do this is that we will be running the Wi-Fi network stack as an async task ("to process network events"), which requires the wifi_init variable to remain available throughout the program's execution. 
 
 ```rust
-let timg0 = TimerGroup::new(peripherals.TIMG0);
-
-let wifi_init = &*mk_static!(
+let timer1 = TimerGroup::new(peripherals.TIMG0);
+// let _init = esp_wifi::init(
+//     timer1.timer0,
+//     esp_hal::rng::Rng::new(peripherals.RNG),
+//     peripherals.RADIO_CLK,
+// )
+// .unwrap();
+let esp_wifi_ctrl = mk_static!(
     EspWifiController<'static>,
-    esp_wifi::init(timg0.timer0, rng.clone(), peripherals.RADIO_CLK).unwrap()
+    esp_wifi::init(
+        timer1.timer0,
+        rng.clone(),
+        peripherals.RADIO_CLK,
+    )
+    .unwrap()
 );
 ```
 
 Next, we will call the new_with_mode function with the initialized wifi_init, the Wi-Fi peripheral instance, and the Wi-Fi mode we want to use, which is STA (Station).
 
 ```rust
-let mut wifi = peripherals.WIFI;
-let (wifi_interface, controller) = esp_wifi::wifi::new_with_mode(&wifi_init, wifi, WifiStaDevice).unwrap();
+let (controller, interfaces) = esp_wifi::wifi::new(&esp_wifi_ctrl, peripherals.WIFI).unwrap();
+let wifi_interface = interfaces.sta;
 ```
 
 ### Initialize the network stack
 
+
+We need a random number for both the TLS configuration and network stack initialization, and both require a u64. However, since rng generates only u32 values, we generate two random numbers and place one in the most significant bits (MSB) and the other in the least significant bits (LSB) using bitwise operation:
+
+```rust
+let mut rng = Rng::new(peripherals.RNG);
+let net_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
+let tls_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
+```
+
 Let's initialize the network stack from the embassy_net crate using the network interface obtained from the Wi-Fi controller, a random number as the seed, the DHCP configuration, and stack resources with a size of 3.
 
 ```rust
-let dhcp_config = DhcpConfig::default();
+ let dhcp_config = DhcpConfig::default();
 // dhcp_config.hostname = Some(String::from_str("implRust").unwrap());
 
-let net_config = embassy_net::Config::dhcpv4(dhcp_config);
-
-let stack = &*mk_static!(
-    Stack<WifiDevice<'_, WifiStaDevice>>,
-    Stack::new(
-        wifi_interface,
-        net_config,
-        mk_static!(StackResources<3>, StackResources::<3>::new()),
-        net_seed
-    )
+let config = embassy_net::Config::dhcpv4(dhcp_config);
+// Init network stack
+let (stack, runner) = embassy_net::new(
+    wifi_interface,
+    config,
+    mk_static!(StackResources<3>, StackResources::<3>::new()),
+    net_seed,
 );
 ```
 
 Next, we will start two background tasks: the connection_task will maintain the Wi-Fi connection, while the net_task will run the network stack and handle network events.
 
 ```rust
-spawner.spawn(connection_task(controller)).ok();
-spawner.spawn(net_task(stack)).ok();
+spawner.spawn(connection(controller)).ok();
+spawner.spawn(net_task(runner)).ok();
 ```
 
 We'll shortly discuss what happens in these two tasks and check these function definitions. But first, let's complete the flow.
 
-## Access Website
+## Wait for Wi-Fi connection
 
-We will wait for the Wi-Fi link to be up, then obtain the IP address. Finally, we call the access_website function with the network stack reference and the random number we generated for the HTTP client. We will explore the access_website function also in more detail shortly.
+We will wait for the Wi-Fi link to be up, then obtain the IP address.
 
 ```rust
-loop {
-    if stack.is_link_up() {
-        break;
+async fn wait_for_connection(stack: Stack<'_>) {
+    println!("Waiting for link to be up");
+    loop {
+        if stack.is_link_up() {
+            break;
+        }
+        Timer::after(Duration::from_millis(500)).await;
     }
-    Timer::after(Duration::from_millis(500)).await;
-}
 
-println!("Waiting to get IP address...");
-loop {
-    if let Some(config) = stack.config_v4() {
-        println!("Got IP: {}", config.address);
-        break;
+    println!("Waiting to get IP address...");
+    loop {
+        if let Some(config) = stack.config_v4() {
+            println!("Got IP: {}", config.address);
+            break;
+        }
+        Timer::after(Duration::from_millis(500)).await;
     }
-    Timer::after(Duration::from_millis(500)).await;
 }
-
-access_website(stack, tls_seed).await;
 ```
 
 

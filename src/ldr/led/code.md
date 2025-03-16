@@ -8,15 +8,35 @@ To create the project, use the `esp-generate` command. Run the following:
 esp-generate --chip esp32 ldr-dracula
 ```
 
-This will open a screen asking you to select options. For now, we dont need to select any options. Just save it by pressing "s" in the keyboard.
+This will open a screen asking you to select options.  In the latest esp-hal, ADC requires us to explicitly enable the unstable features. 
 
+- So you select the option "Enable unstable HAL features."
+
+In this exercise, we will be printing messages to the system console. In order to do that, we will enable the logging feature.
+
+- So, scroll to "Flashing, logging and debugging (espflash)" and hit Enter.
+
+- Then, Select "Use defmt to print messages".
+
+
+Then save it by pressing "s" in the keyboard.
+
+## Update cargo.toml
+
+The nb crate simplifies non-blocking I/O (e.g., reading sensors, UART data) by returning nb::Result with a WouldBlock error when an operation isn't ready, allowing you to retry later without blocking. 
+
+If you're wondering why we need it, the ADC's read_oneshot function returns an nb::Result and may return nb::Error::WouldBlock if it's not ready yet. Wrapping it with nb::block makes your code keep retrying until the ADC has finished its job and returns a proper result.
+
+```toml
+nb = "1.1.0"
+```
 
 ### Setup the LED
 
 We have done this before; just set GPIO 33, which is connected to the LED, as an output pin and initialize it to a Low state.  
 
 ```rust
-let mut led = Output::new(peripherals.GPIO33, Level::Low);
+let mut led = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
 ```
 
 ### Configure ADC 
@@ -26,8 +46,8 @@ We will configure GPIO 4 as an ADC input pin, which is one of the ADC2 channels.
 ```rust
 let adc_pin = peripherals.GPIO4;
 let mut adc2_config = AdcConfig::new();
-let mut pin = adc2_config.enable_pin(adc_pin, Attenuation::Attenuation11dB);
-let mut adc1 = Adc::new(peripherals.ADC2, adc2_config);
+let mut pin = adc2_config.enable_pin(adc_pin, Attenuation::_11dB);
+let mut adc2 = Adc::new(peripherals.ADC2, adc2_config);
 ```
 
 ### Oneshot read
@@ -56,25 +76,30 @@ If you're wondering how the LDR's high resistance leads to a higher voltage, I r
 #![no_std]
 #![no_main]
 
-use esp_backtrace as _;
 use esp_hal::analog::adc::{Adc, AdcConfig, Attenuation};
+use esp_hal::clock::CpuClock;
 use esp_hal::delay::Delay;
-use esp_hal::gpio::{Level, Output};
-use esp_hal::prelude::*;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::main;
+use esp_println as _;
 
-#[entry]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[main]
 fn main() -> ! {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    let mut led = Output::new(peripherals.GPIO33, Level::Low);
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
+
+    let mut led = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
 
     let adc_pin = peripherals.GPIO4;
     let mut adc2_config = AdcConfig::new();
-    let mut pin = adc2_config.enable_pin(adc_pin, Attenuation::Attenuation11dB);
+    let mut pin = adc2_config.enable_pin(adc_pin, Attenuation::_11dB);
     let mut adc2 = Adc::new(peripherals.ADC2, adc2_config);
     let delay = Delay::new();
 

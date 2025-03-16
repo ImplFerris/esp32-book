@@ -114,7 +114,7 @@
         - [GATT](./bluetooth/ble/gatt.md)
         - [Code](./bluetooth/ble/code.md)
         - [Notification](./bluetooth/ble/notification.md)
-<!-- - [LCD](./lcd/index.md)
+- [LCD](./lcd/index.md)
     - [How it works?](./lcd/how-it-works.md)
     - [Pin Layout](./lcd/pin-layout.md)
     - [Circuit](./lcd/circuit.md)
@@ -125,5 +125,5 @@
         - [Display on LCD](./lcd/display-custom-chars.md)
         - [Multi Generator](./lcd/multi-custom-gen.md)
         - [Multi Custom](./lcd/multi-custom-character.md)
-        - [Symbols Index](./lcd/custom-symbols-index.md) -->
+        - [Symbols Index](./lcd/custom-symbols-index.md)
 - [Projects](./projects.md)

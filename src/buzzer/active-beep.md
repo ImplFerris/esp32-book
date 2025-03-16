@@ -24,19 +24,28 @@ This will open a screen asking you to select options. For now, we dont need to s
 We will set GPIO 33 as our output pin with an initial Low state. This is the pin where we connected the positive pin of the buzzer.
 
 ```rust
-let mut buzzer = Output::new(peripherals.GPIO33, Level::Low);
+let mut buzzer = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
 ```
 
 The logic is straightforward: set the buzzer pin to High for 500 milliseconds, then to Low for another 500 milliseconds in a loop. This causes the buzzer to produce a beeping sound.
 
 ```rust
-    let delay = Delay::new();
-    loop {
+   loop {
         buzzer.set_high();
-        delay.delay_millis(500);
+        blocking_delay(Duration::from_millis(500));
         buzzer.set_low();
-        delay.delay_millis(500);
+        blocking_delay(Duration::from_millis(500));
     }
+```
+
+## Helper function for delay
+It waits until the specified duration has passed.
+
+```rust
+fn blocking_delay(duration: Duration) {
+    let delay_start = Instant::now();
+    while delay_start.elapsed() < duration {}
+}
 ```
 
 ## Clone the existing project
@@ -47,3 +56,41 @@ git clone https://github.com/ImplFerris/esp32-projects
 cd esp32-projects/active-buzzer
 ```
 
+
+## The Full code 
+```rust
+#![no_std]
+#![no_main]
+
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::main;
+use esp_hal::time::{Duration, Instant};
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[main]
+fn main() -> ! {
+    // generator version: 0.3.1
+
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
+
+    let mut buzzer = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
+
+    loop {
+        buzzer.set_high();
+        blocking_delay(Duration::from_millis(500));
+        buzzer.set_low();
+        blocking_delay(Duration::from_millis(500));
+    }
+}
+
+fn blocking_delay(duration: Duration) {
+    let delay_start = Instant::now();
+    while delay_start.elapsed() < duration {}
+}
+```

@@ -34,9 +34,9 @@ cargo install esp-generate
 
 If you want to follow the code exactly as it is in this project, install this esp-generate version used for generating the examples:
 ```sh
-cargo install esp-generate@0.2.1
+cargo install esp-generate@0.3.1
 ```
-The related rust toolchain for this version is 1.82.0
+The related rust toolchain for this version is 1.84.0
 
 
 ### Creating project with `esp-generate`
@@ -59,7 +59,7 @@ espup install
 
 If you want to use the project I created as it is, you might need the exact Rust toolchain version. You can use this command:
 ```sh
-espup install --toolchain-version 1.82.0
+espup install --toolchain-version 1.84.0
 ```
 
 **NOTE:** Install this specific version **only** if you plan to clone and run the project examples exactly as they are. Using a mismatched version may lead to weird errors (example error: asm! macro is not allowed in naked functions)
@@ -69,5 +69,5 @@ espup install --toolchain-version 1.82.0
 When you create a project with the esp-generate, it automatically sets "esp" as the toolchain channel. If you want to "clone" and use existing projects instead of creating one from scratch, you need to specify the toolchain name as "book-0.22" (as the project's rust-toolchain.toml configured with toolchain name book-0.22). This applies only if you're cloning a project from the esp32-projects repository and want to run it without any modifications.
 
 ```sh
-espup install --name book-0.22 --toolchain-version 1.82.0
+espup install --name book-1.0.0-beta --toolchain-version 1.84.0
 ```

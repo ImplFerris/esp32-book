@@ -31,15 +31,13 @@ This is the function we called from the main function.  This is almost similar t
 
 ```rust
 pub async fn start_wifi(
-    wifi_init: &'static EspWifiController<'static>,
+    esp_wifi_ctrl: &'static EspWifiController<'static>,
     wifi: esp_hal::peripherals::WIFI,
     mut rng: Rng,
     spawner: &Spawner,
-) -> anyhow::Result<&'static Stack<'static>> {
-
-    // Create Wifi interface and controller
-    let (wifi_interface, controller) =
-        esp_wifi::wifi::new_with_mode(wifi_init, wifi, WifiApDevice).unwrap();
+) -> anyhow::Result<Stack<'static>> {
+    let (controller, interfaces) = esp_wifi::wifi::new(&esp_wifi_ctrl, wifi).unwrap();
+    let wifi_interface = interfaces.ap;
     let net_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
 
     // Parse STATIC_IP
@@ -64,25 +62,24 @@ pub async fn start_wifi(
     //     dns_servers: Default::default(),
     // });
 
-    // Create Network stack and the runner
-    let (stack, runner) = mk_static!(
-        (
-            Stack<'static>,
-            Runner<'static, WifiDevice<'static, WifiApDevice>>
-        ),
-        embassy_net::new(
-            wifi_interface,
-            net_config,
-            mk_static!(StackResources<3>, StackResources::<3>::new()),
-            net_seed
-        )
+    // Init network stack
+    let (stack, runner) = embassy_net::new(
+        wifi_interface,
+        net_config,
+        mk_static!(StackResources<3>, StackResources::<3>::new()),
+        net_seed,
     );
 
-    // spawn the tasks
     spawner.spawn(connection_task(controller)).ok();
     spawner.spawn(net_task(runner)).ok();
 
-    // wait for link to be up and print the IP
+    wait_for_connection(stack).await;
+
+    Ok(stack)
+}
+
+async fn wait_for_connection(stack: Stack<'_>) {
+    println!("Waiting for link to be up");
     loop {
         if stack.is_link_up() {
             break;
@@ -90,16 +87,13 @@ pub async fn start_wifi(
         Timer::after(Duration::from_millis(500)).await;
     }
 
-    println!("Waiting to get IP address...");
-    loop {
-        if let Some(config) = stack.config_v4() {
-            println!("Got IP: {}", config.address);
-            break;
-        }
-        Timer::after(Duration::from_millis(500)).await;
+    println!("Connect to the AP `esp-wifi` and point your browser to http://{STATIC_IP}/");
+    while !stack.is_config_up() {
+        Timer::after(Duration::from_millis(100)).await
     }
-
-    Ok(stack)
+    stack
+        .config_v4()
+        .inspect(|c| println!("ipv4 config: {c:?}"));
 }
 ```
 
@@ -107,7 +101,7 @@ pub async fn start_wifi(
 
 ```rust
 #[embassy_executor::task]
-async fn net_task(runner: &'static mut Runner<'static, WifiDevice<'static, WifiApDevice>>) -> ! {
+async fn net_task(mut runner: Runner<'static, WifiDevice<'static>>) {
     runner.run().await
 }
 ```
@@ -124,26 +118,28 @@ If you want to run the Wi-Fi without a password, you can comment out the `passwo
 
 
 ```rust
+
 #[embassy_executor::task]
 async fn connection_task(mut controller: WifiController<'static>) {
     println!("start connection task");
     println!("Device capabilities: {:?}", controller.capabilities());
-
     loop {
-        if esp_wifi::wifi::wifi_state() == WifiState::ApStarted {
-            // wait until we're no longer connected
-            controller.wait_for_event(WifiEvent::ApStop).await;
-            Timer::after(Duration::from_millis(5000)).await
+        match esp_wifi::wifi::wifi_state() {
+            WifiState::ApStarted => {
+                // wait until we're no longer connected
+                controller.wait_for_event(WifiEvent::ApStop).await;
+                Timer::after(Duration::from_millis(5000)).await
+            }
+            _ => {}
         }
-
         if !matches!(controller.is_started(), Ok(true)) {
-            let wifi_config = Configuration::AccessPoint(AccessPointConfiguration {
-                ssid: SSID.try_into().unwrap(), // Use whatever Wi-Fi name you want
+            let client_config = wifi::Configuration::AccessPoint(wifi::AccessPointConfiguration {
+                ssid: SSID.try_into().unwrap(),
                 password: PASSWORD.try_into().unwrap(), // Set your password
                 auth_method: esp_wifi::wifi::AuthMethod::WPA2Personal,
                 ..Default::default()
             });
-            controller.set_configuration(&wifi_config).unwrap();
+            controller.set_configuration(&client_config).unwrap();
             println!("Starting wifi");
             controller.start_async().await.unwrap();
             println!("Wifi started!");

@@ -3,10 +3,11 @@
 This is similar to what we discussed in the WebServer chapter. I recommend reading that [chapter](../web-server/serve-website.md) for more details.
 
 ```rust
-use core::include_str;
 use embassy_net::Stack;
 use embassy_time::Duration;
+use esp_alloc as _;
 use picoserve::{response::File, routing, AppBuilder, AppRouter, Router};
+
 pub struct Application;
 
 impl AppBuilder for Application {
@@ -26,7 +27,7 @@ pub const WEB_TASK_POOL_SIZE: usize = 2;
 pub async fn web_task(
     id: usize,
     stack: Stack<'static>,
-    app: &'static AppRouter<Application>,
+    router: &'static AppRouter<Application>,
     config: &'static picoserve::Config<Duration>,
 ) -> ! {
     let port = 80;
@@ -36,7 +37,7 @@ pub async fn web_task(
 
     picoserve::listen_and_serve(
         id,
-        app,
+        router,
         config,
         stack,
         port,
@@ -48,13 +49,13 @@ pub async fn web_task(
 }
 
 pub struct WebApp {
-    pub app: &'static Router<<Application as AppBuilder>::PathRouter>,
+    pub router: &'static Router<<Application as AppBuilder>::PathRouter>,
     pub config: &'static picoserve::Config<Duration>,
 }
 
 impl Default for WebApp {
     fn default() -> Self {
-        let app = picoserve::make_static!(AppRouter<Application>, Application.build_app());
+        let router = picoserve::make_static!(AppRouter<Application>, Application.build_app());
 
         let config = picoserve::make_static!(
             picoserve::Config<Duration>,
@@ -66,9 +67,10 @@ impl Default for WebApp {
             .keep_connection_alive()
         );
 
-        Self { app, config }
+        Self { router, config }
     }
 }
+
 
 ```
 

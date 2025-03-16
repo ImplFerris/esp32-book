@@ -8,9 +8,11 @@ esp-generate --chip esp32 room-temperature
 
 This will open a screen asking you to select options. 
 
-- Select the option "Adds embassy framework support".
+- Select the option "Enable unstable HAL features"
+- Then, select the option "Adds embassy framework support".
 
 Just save it by pressing "s" in the keyboard.
+
 
 ## Update Cargo.toml
 
@@ -19,10 +21,12 @@ We'll be using the ssd1306 crate, the "libm" math library, and heapless for stri
 
 ```toml
 libm = "0.2.11"
+nb = "1.1.0"
 ssd1306 = { git = "https://github.com/rust-embedded-community/ssd1306.git", rev = "f3a2f7aca421fbf3ddda45ecef0dfd1f0f12330e", features = [
     "async",
 ] }
 embedded-graphics = "0.8.1"
+heapless = "0.8.0"
 ```
 
 ## Setup
@@ -62,7 +66,7 @@ loop {
         .unwrap();
 
     display.flush().await.unwrap();
-    delay.delay_millis(1000);
+    Timer::after(Duration::from_secs(1)).await;
 }
 ```
 
@@ -83,8 +87,15 @@ cd esp32-projects/oled-temperature
 #![no_main]
 
 use core::fmt::Write;
-
+use defmt::info;
 use embassy_executor::Spawner;
+use embassy_time::{Duration, Timer};
+use esp_hal::analog::adc::{Adc, AdcConfig, Attenuation};
+use esp_hal::clock::CpuClock;
+use esp_hal::time::Rate;
+use esp_hal::timer::timg::TimerGroup;
+use esp_println as _;
+
 use embedded_graphics::prelude::*;
 use embedded_graphics::{
     mono_font::{ascii::FONT_6X10, MonoTextStyleBuilder},
@@ -92,18 +103,16 @@ use embedded_graphics::{
     prelude::Point,
     text::{Baseline, Text},
 };
-use esp_backtrace as _;
-use esp_hal::{
-    analog::adc::{Adc, AdcConfig, Attenuation},
-    delay::Delay,
-    prelude::*,
-};
 use heapless::String;
-use log::info;
 use ssd1306::{
     mode::DisplayConfigAsync, prelude::DisplayRotation, size::DisplaySize128x64,
     I2CDisplayInterface, Ssd1306Async,
 };
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
 
 const fn kelvin_to_celsius(kelvin: f64) -> f64 {
     kelvin - 273.15
@@ -139,17 +148,14 @@ fn calculate_temperature(current_res: f64, b_val: f64) -> f64 {
     1.0 / inv_t
 }
 
-#[main]
+#[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_println::logger::init_logger_from_env();
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
     esp_hal_embassy::init(timer0.timer0);
 
     info!("Embassy initialized!");
@@ -157,27 +163,22 @@ async fn main(_spawner: Spawner) {
     // ADC Setup for thermistor
     let adc_pin = peripherals.GPIO13;
     let mut adc2_config = AdcConfig::new();
-    let mut pin = adc2_config.enable_pin(adc_pin, Attenuation::Attenuation11dB);
+    let mut pin = adc2_config.enable_pin(adc_pin, Attenuation::_11dB);
     let mut adc2 = Adc::new(peripherals.ADC2, adc2_config);
-    let delay = Delay::new();
 
-    // OLED Setup:
-    let i2c0 = esp_hal::i2c::master::I2c::new(
+    // configure the display
+    let i2c_bus = esp_hal::i2c::master::I2c::new(
         peripherals.I2C0,
-        esp_hal::i2c::master::Config {
-            frequency: 400.kHz(),
-            timeout: Some(100),
-        },
+        esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
     )
+    .unwrap()
     .with_scl(peripherals.GPIO18)
     .with_sda(peripherals.GPIO23)
     .into_async();
-
-    let interface = I2CDisplayInterface::new(i2c0);
+    let interface = I2CDisplayInterface::new(i2c_bus);
     let mut display = Ssd1306Async::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
     display.init().await.unwrap();
-
     let text_style = MonoTextStyleBuilder::new()
         .font(&FONT_6X10)
         .text_color(BinaryColor::On)
@@ -207,7 +208,8 @@ async fn main(_spawner: Spawner) {
             .unwrap();
 
         display.flush().await.unwrap();
-        delay.delay_millis(1000);
+
+        Timer::after(Duration::from_secs(1)).await;
     }
 }
 

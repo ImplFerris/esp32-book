@@ -20,12 +20,14 @@ This app lets us read and write data provided by the ESP32.
 We will enable async (Embassy) support for this project.  To create the project, use the `esp-generate` command. Run the following:
 
 ```sh
-esp-generate --chip esp32 ble-demo
+esp-generate --chip esp32 bluetooth-low-energy
 ```
 
 This will open a screen asking you to select options. 
 
-- Select the option "Enable BLE via the `esp-wifi` crate. Requires `alloc`".
+- First, select the option "Enable unstable HAL features."
+- Select the option "Enable allocations via the esp-alloc crate."
+- Now, you can enable "Enable BLE via esp-wifi crate."
 - Select the option "Adds embassy framework support".
 
 Just save it by pressing "s" in the keyboard.
@@ -51,17 +53,17 @@ macro_rules! mk_static {
 The ESP32 shares a single radio for both Wi-Fi and Bluetooth. In order to initialize Bluetooth, We will use the same Wi-Fi controller that we used for Wi-Fi.
  
 ```rust
-let timg0 = TimerGroup::new(peripherals.TIMG0);
-
-let init = &*mk_static!(
+let timer1 = TimerGroup::new(peripherals.TIMG0);
+let esp_wifi_ctrl = &*mk_static!(
     EspWifiController<'static>,
     init(
-        timg0.timer0,
+        timer1.timer0,
         Rng::new(peripherals.RNG),
         peripherals.RADIO_CLK,
     )
     .unwrap()
 );
+
 ```
 
 Let's initialize the Bluetooth connector and set up BLE with the help of the bleps crate.
@@ -187,15 +189,23 @@ use bleps::{
     asynch::Ble,
     gatt,
 };
+use defmt::info;
 use embassy_executor::Spawner;
-use esp_alloc as _;
-use esp_backtrace as _;
-use esp_hal::{prelude::*, rng::Rng, time, timer::timg::TimerGroup};
-use esp_println::println;
-use esp_wifi::{ble::controller::BleConnector, init, EspWifiController};
+use esp_hal::time;
+use esp_hal::timer::timg::TimerGroup;
+use esp_hal::{clock::CpuClock, rng::Rng};
+use esp_println::{self as _, println};
+use esp_wifi::ble::controller::BleConnector;
+use esp_wifi::{init, EspWifiController};
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
 
 extern crate alloc;
 
+// When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
 macro_rules! mk_static {
     ($t:ty,$val:expr) => {{
         static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
@@ -205,37 +215,43 @@ macro_rules! mk_static {
     }};
 }
 
-#[main]
+#[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_alloc::heap_allocator!(72 * 1024);
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    esp_println::logger::init_logger_from_env();
-    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_alloc::heap_allocator!(size: 72 * 1024);
 
-    let init = &*mk_static!(
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
+    esp_hal_embassy::init(timer0.timer0);
+
+    info!("Embassy initialized!");
+
+    // let _init = esp_wifi::init(
+    //     timer1.timer0,
+    //     esp_hal::rng::Rng::new(peripherals.RNG),
+    //     peripherals.RADIO_CLK,
+    // )
+    // .unwrap();
+
+    let timer1 = TimerGroup::new(peripherals.TIMG0);
+    let esp_wifi_ctrl = &*mk_static!(
         EspWifiController<'static>,
         init(
-            timg0.timer0,
+            timer1.timer0,
             Rng::new(peripherals.RNG),
             peripherals.RADIO_CLK,
         )
         .unwrap()
     );
 
-    let timg1 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timg1.timer0);
-
     let mut bluetooth = peripherals.BT;
 
-    let connector = BleConnector::new(init, &mut bluetooth);
+    let connector = BleConnector::new(esp_wifi_ctrl, &mut bluetooth);
 
-    let now = || time::now().duration_since_epoch().to_millis();
+    let now = || time::Instant::now().duration_since_epoch().as_millis();
     let mut ble = Ble::new(connector, now);
     println!("Connector created");
 

@@ -23,10 +23,17 @@ To create the project, use the `esp-generate` command. Run the following:
 esp-generate --chip esp32 webserver-html
 ```
 
-This will open a screen asking you to select options. 
+This will open a screen asking you to select options. In order to Enable Wi-Fi, we will first need to enable "unstable" and "alloc" features. If you noticed, until you select these two options, you wont be able to enable Wi-Fi option. So select one by one
 
-- Select the option "Enables Wi-Fi via the esp-wifi crate. Requires alloc".  It automatically selects the espa-alloc crate option also
+- First, select the option "Enable unstable HAL features."
+- Select the option "Enable allocations via the esp-alloc crate."
+- Now, you can enable "Enable Wi-Fi via esp-wifi crate."
 - Select the option "Adds embassy framework support".
+
+Enable the logging feature also
+
+- So, scroll to "Flashing, logging and debugging (espflash)" and hit Enter.
+- Then, Select "Use defmt to print messages".
 
 Just save it by pressing "s" in the keyboard.
 
@@ -37,27 +44,19 @@ Just save it by pressing "s" in the keyboard.
 [picoserve](https://docs.rs/picoserve/latest/picoserve/) is a crate that provides an asynchronous HTTP server designed for bare-metal environments, heavily inspired by Axum. As you might have guessed from the name, it was first created with "Raspberry Pi Pico W" and embassy in mind. But it works fine with other embedded runtimes and hardware, including the ESP32. This crate makes our lives much easier. Without it, we would have to build the web server core from scratch, a time-consuming task that would be beyond the scope of this book.
 
 ```toml
-picoserve = { version = "0.13.3", features = ["embassy"] }
+picoserve = { version = "0.15.0", features = ["embassy"] }
 ```
 
 ### Task arena size update
 We will update the embassy-executor with the task-arena-size-65536 feature. For more details, refer to the Task Arena Size documentation [here](https://docs.embassy.dev/embassy-executor/git/cortex-m/index.html#task-arena).
 
 ```toml
-embassy-executor = { version = "0.6.3", features = ["task-arena-size-65536"] }
-```
-
-### Update the embassy-net
-To make some functions compatible with the latest picoserve crate, I needed to update embassy-net to version 0.5.0.
-
-```toml
-embassy-net = { version = "0.5.0", features = [
-    "tcp",
-    "udp",
-    "dhcpv4",
-    "medium-ethernet",
+embassy-executor = { version = "0.7.0", features = [
+  "defmt",
+  "task-arena-size-65536",
 ] }
 ```
+
 
 ## Project Structure
 
@@ -69,7 +68,7 @@ We will organize the logic by splitting it into modules. Under the lib, we will 
 ├── rust-toolchain.toml
 ├── src
 │   ├── bin
-│   │   └── async_main.rs
+│   │   └── main.rs
 │   ├── index.html
 │   ├── lib.rs
 │   ├── web.rs
@@ -98,7 +97,7 @@ macro_rules! mk_static {
 }
 ```
 
-## The main function (async_main.rs file)
+## The main function (main.rs file)
 
 To use the lib module, we would normally have to reference it using the full project name (e.g., webserver::web). However, to keep the references consistent across different exercises, we will alias the import as "lib". This allows us to use it as "lib::web" instead.
 
@@ -109,45 +108,47 @@ Next, we create a Wi-Fi controller, which we will pass to the start_wifi functio
 We will create a web application instance, configure routing and settings using the picoserve crate. We will then spawn multiple tasks to handle incoming requests based on the defined pool size. Each task receives the task ID, app instance, network stack, and server settings.
 
 ```rust
-use webserver as lib;
+use webserver_html as lib;
 
-#[main]
+#[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_alloc::heap_allocator!(72 * 1024);
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    esp_println::logger::init_logger_from_env();
+    esp_alloc::heap_allocator!(size: 72 * 1024);
 
-    let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
     esp_hal_embassy::init(timer0.timer0);
-
-    let rng = Rng::new(peripherals.RNG);
 
     info!("Embassy initialized!");
 
-    let timg0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG0);
+    let timer1 = TimerGroup::new(peripherals.TIMG0);
+    // let _init = esp_wifi::init(
+    //     timer1.timer0,
+    //     esp_hal::rng::Rng::new(peripherals.RNG),
+    //     peripherals.RADIO_CLK,
+    // )
+    // .unwrap();
 
-    let wifi_init = lib::mk_static!(
+    let rng = Rng::new(peripherals.RNG);
+    let esp_wifi_ctrl = &*lib::mk_static!(
         EspWifiController<'static>,
-        esp_wifi::init(timg0.timer0, rng, peripherals.RADIO_CLK).unwrap()
+        esp_wifi::init(timer1.timer0, rng.clone(), peripherals.RADIO_CLK,).unwrap()
     );
 
-    let stack = lib::wifi::start_wifi(wifi_init, peripherals.WIFI, rng, &spawner).await;
+    let stack = lib::wifi::start_wifi(esp_wifi_ctrl, peripherals.WIFI, rng, &spawner).await;
 
     let web_app = lib::web::WebApp::default();
     for id in 0..lib::web::WEB_TASK_POOL_SIZE {
         spawner.must_spawn(lib::web::web_task(
             id,
-            *stack,
+            stack,
             web_app.router,
             web_app.config,
         ));
     }
-    println!("Web server started...");
+    info!("Web server started...");
 }
 ```

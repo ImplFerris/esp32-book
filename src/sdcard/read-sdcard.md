@@ -11,7 +11,8 @@ esp-generate --chip esp32 sdcard-read
 
 This will open a screen asking you to select options. 
 
-- Select the option "Adds embassy framework support".
+- Select the option "Enable unstable HAL features"
+- Then, select the option "Adds embassy framework support".
 
 Just save it by pressing "s" in the keyboard.
 
@@ -22,7 +23,7 @@ Update your Cargo.toml to add these additional crate along with the existing dep
 # sd card driver
 embedded-sdmmc = "0.8.1"
 # To convert Spi bus to SpiDevice
-embedded-hal-bus = "0.2.0"
+embedded-hal-bus = "0.3.0"
 ```
 
 
@@ -75,25 +76,26 @@ To communicate with the SD card reader, we will initialize the SPI instance usin
 The SCK (Serial Clock) will be assigned to GPIO14, MOSI (Master Out, Slave In) to GPIO15, and MISO (Master In, Slave Out) to GPIO2. Additionally, we will configure the CS (Chip Select) pin on GPIO13 and set its initial state to High.
 
 ```rust
-let spi = Spi::new_with_config(
+let spi_bus = Spi::new(
     peripherals.SPI2,
-    Config {
-        frequency: 400.kHz(),
-        mode: SpiMode::Mode0,
-        ..Config::default()
-    },
+    spi::master::Config::default()
+        .with_frequency(Rate::from_khz(400))
+        .with_mode(spi::Mode::_0),
 )
+.unwrap()
 .with_sck(peripherals.GPIO18)
 .with_mosi(peripherals.GPIO23)
-.with_miso(peripherals.GPIO19);
-let sd_cs = Output::new(peripherals.GPIO5, Level::High);
+.with_miso(peripherals.GPIO19)
+.into_async();
+
+let sd_cs = Output::new(peripherals.GPIO5, Level::High, OutputConfig::default());
 ```
 
 Once the SPI is configured, we will create an SpiDevice for the SD card reader. To achieve this, we will use the ExclusiveDevice provided by the embedded-hal-bus crate.  Finally, we initialize the SD card.
 
 ```rust
-let spi = ExclusiveDevice::new(spi, sd_cs, delay).unwrap();
-let sdcard = SdCard::new(spi, delay);
+let spi_dev = ExclusiveDevice::new(spi_bus, sd_cs, Delay).unwrap();
+let sdcard = SdCard::new(spi_dev, Delay);
 ```
 
 ## Volume manager
@@ -163,27 +165,32 @@ cd esp32-projects/sdcard-read
 #![no_std]
 #![no_main]
 
+use defmt::{info, println};
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Timer};
+use embassy_time::{Delay, Duration, Timer};
 use embedded_hal_bus::spi::ExclusiveDevice;
 use embedded_sdmmc::{SdCard, TimeSource, Timestamp, VolumeIdx, VolumeManager};
-use esp_backtrace as _;
-use esp_hal::{
-    delay::Delay,
-    gpio::{Level, Output},
-    prelude::*,
-    spi::{
-        master::{Config, Spi},
-        SpiMode,
-    },
-};
-use esp_println::{print, println};
-use log::info;
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::spi;
+use esp_hal::spi::master::Spi;
+use esp_hal::time::Rate;
+use esp_hal::timer::timg::TimerGroup;
+use esp_println::{self as _, print};
 
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+/// Code from https://github.com/rp-rs/rp-hal-boards/blob/main/boards/rp-pico/examples/pico_spi_sd_card.rs
+/// A dummy timesource, which is mostly important for creating files.
 #[derive(Default)]
 pub struct DummyTimesource();
 
 impl TimeSource for DummyTimesource {
+    // In theory you could use the RTC of the rp2040 here, if you had
+    // any external time synchronizing device.
     fn get_timestamp(&self) -> Timestamp {
         Timestamp {
             year_since_1970: 0,
@@ -196,38 +203,33 @@ impl TimeSource for DummyTimesource {
     }
 }
 
-#[main]
+#[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_println::logger::init_logger_from_env();
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
     esp_hal_embassy::init(timer0.timer0);
 
     info!("Embassy initialized!");
 
-    let delay = Delay::new();
-
-    let spi = Spi::new_with_config(
+    let spi_bus = Spi::new(
         peripherals.SPI2,
-        Config {
-            frequency: 400.kHz(),
-            mode: SpiMode::Mode0,
-            ..Config::default()
-        },
+        spi::master::Config::default()
+            .with_frequency(Rate::from_khz(400))
+            .with_mode(spi::Mode::_0),
     )
+    .unwrap()
     .with_sck(peripherals.GPIO18)
     .with_mosi(peripherals.GPIO23)
-    .with_miso(peripherals.GPIO19);
-    let sd_cs = Output::new(peripherals.GPIO5, Level::High);
-    let spi = ExclusiveDevice::new(spi, sd_cs, delay).unwrap();
+    .with_miso(peripherals.GPIO19)
+    .into_async();
+    let sd_cs = Output::new(peripherals.GPIO5, Level::High, OutputConfig::default());
+    let spi_dev = ExclusiveDevice::new(spi_bus, sd_cs, Delay).unwrap();
 
-    let sdcard = SdCard::new(spi, delay);
+    let sdcard = SdCard::new(spi_dev, Delay);
     let mut volume_mgr = VolumeManager::new(sdcard, DummyTimesource::default());
 
     println!("Init SD card controller and retrieve card size...");

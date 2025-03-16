@@ -54,8 +54,8 @@ The PIR sensor connection is the same as before (see [circuit](./circuit.md)). W
 We'll set up GPIO 18 as an Output pin with an initial Low state for the active buzzer. The onboard LED, connected to GPIO 2, will also be configured as an Output pin with an initial Low state.
 
 ```rust
-let mut buzzer_pin = Output::new(peripherals.GPIO18, Level::Low);
-let mut led = Output::new(peripherals.GPIO2, Level::Low);
+let mut buzzer_pin = Output::new(peripherals.GPIO18, Level::Low, OutputConfig::default());
+let mut led = Output::new(peripherals.GPIO2, Level::Low, OutputConfig::default());
 ```
 
 ## The Logic
@@ -67,11 +67,11 @@ loop {
     if sensor_pin.is_high() {
         buzzer_pin.set_high();
         led.set_high();
-        delay.delay(100.millis());
+        blocking_delay(Duration::from_millis(100));
         buzzer_pin.set_low();
         led.set_low();
     }
-    delay.delay(100.millis());
+    blocking_delay(Duration::from_millis(100));
 }
 ```
 
@@ -91,36 +91,45 @@ cd esp32-projects/burglar-alarm
 #![no_std]
 #![no_main]
 
-use esp_backtrace as _;
-use esp_hal::delay::Delay;
-use esp_hal::gpio::{Input, Level, Output, Pull};
-use esp_hal::prelude::*;
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
+use esp_hal::main;
+use esp_hal::time::{Duration, Instant};
 
-#[entry]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[main]
 fn main() -> ! {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_println::logger::init_logger_from_env();
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    let sensor_pin = Input::new(peripherals.GPIO33, Pull::Down);
+    let sensor_pin = Input::new(
+        peripherals.GPIO33,
+        InputConfig::default().with_pull(Pull::Down),
+    );
 
-    let mut buzzer_pin = Output::new(peripherals.GPIO18, Level::Low);
-    let mut led = Output::new(peripherals.GPIO2, Level::Low);
+    let mut buzzer_pin = Output::new(peripherals.GPIO18, Level::Low, OutputConfig::default());
+    let mut led = Output::new(peripherals.GPIO2, Level::Low, OutputConfig::default());
 
-    let delay = Delay::new();
     loop {
         if sensor_pin.is_high() {
             buzzer_pin.set_high();
             led.set_high();
-            delay.delay(100.millis());
+            blocking_delay(Duration::from_millis(100));
             buzzer_pin.set_low();
             led.set_low();
         }
-        delay.delay(100.millis());
+        blocking_delay(Duration::from_millis(100));
     }
+}
+
+fn blocking_delay(duration: Duration) {
+    let delay_start = Instant::now();
+    while delay_start.elapsed() < duration {}
 }
 ```

@@ -11,7 +11,8 @@ esp-generate --chip esp32 rfid-uid
 
 This will open a screen asking you to select options. 
 
-- Select the option "Adds embassy framework support".
+- Select the option "Enable unstable HAL features"
+- Then, select the option "Adds embassy framework support".
 
 Just save it by pressing "s" in the keyboard.
 
@@ -39,18 +40,19 @@ So, we need to get the SpiDevice from the SpiBus to use it with the SD card. Thi
 To communicate with the RFID module, we will initialize the SPI instance using the SPI2 peripheral.  In this setup, we will configure the SPI clock to 5MHz and map the necessary pins to GPIOs for proper communication.
 
 ```rust
-let spi = Spi::new_with_config(
+let spi_bus = Spi::new(
     peripherals.SPI2,
-    Config {
-        frequency: 5.MHz(),
-        mode: SpiMode::Mode0,
-        ..Config::default()
-    },
+    spi::master::Config::default()
+        .with_frequency(Rate::from_mhz(5))
+        .with_mode(spi::Mode::_0),
 )
+.unwrap()
 .with_sck(peripherals.GPIO18)
 .with_mosi(peripherals.GPIO23)
-.with_miso(peripherals.GPIO19);
-let sd_cs = Output::new(peripherals.GPIO5, Level::High);
+.with_miso(peripherals.GPIO19)
+.into_async();
+
+let sd_cs = Output::new(peripherals.GPIO5, Level::High, OutputConfig::default());
 ```
 
 ### Getting the `SpiDevice` from SPI Bus
@@ -58,14 +60,14 @@ To work with the mfrc522 crate, we need an `SpiDevice`. Since we only have the S
 
 ```rust
 let delay = Delay::new();
-let spi = ExclusiveDevice::new(spi, sd_cs, delay).unwrap();
+let spi_dev = ExclusiveDevice::new(spi_bus, sd_cs, delay).unwrap();
 ```
 
 ### Initialize the mfrc522
 Next, we initialize the MFRC522 driver. To do this, we wrap the SpiDevice instance with the SpiInterface wrapper provided by the mfrc522 crate and pass it to the Mfrc522 initialization:
 
 ```rust
-let spi_interface = SpiInterface::new(spi);
+let spi_interface = SpiInterface::new(spi_dev);
 let mut rfid = Mfrc522::new(spi_interface).init().unwrap();
 ```
 
@@ -79,7 +81,7 @@ fn print_hex_bytes(data: &[u8]) {
     for &b in data.iter() {
         print!("{:02x} ", b);
     }
-    println!();
+    println!("");
 }
 ```
 
@@ -119,54 +121,62 @@ After flashing the code onto the ESP32, bring the RFID tag close to the reader. 
 #![no_std]
 #![no_main]
 
+use defmt::{info, println};
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 use embedded_hal_bus::spi::ExclusiveDevice;
-use esp_backtrace as _;
-use esp_hal::{
-    delay::Delay,
-    gpio::{Level, Output},
-    prelude::*,
-    spi::{
-        master::{Config, Spi},
-        SpiMode,
-    },
-};
-use esp_println::{print, println};
-use log::info;
-use mfrc522::{comm::blocking::spi::SpiInterface, Mfrc522};
+use esp_hal::clock::CpuClock;
+use esp_hal::delay::Delay;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::spi;
+use esp_hal::spi::master::Spi;
+use esp_hal::time::Rate;
+use esp_hal::timer::timg::TimerGroup;
+use esp_println::{self as _, print};
+use mfrc522::comm::blocking::spi::SpiInterface;
+use mfrc522::Mfrc522;
 
-#[main]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+fn print_hex_bytes(data: &[u8]) {
+    for &b in data.iter() {
+        print!("{:02x} ", b);
+    }
+    println!("");
+}
+
+#[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_println::logger::init_logger_from_env();
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
     esp_hal_embassy::init(timer0.timer0);
 
     info!("Embassy initialized!");
-    let delay = Delay::new();
 
-    let spi = Spi::new_with_config(
+    let spi_bus = Spi::new(
         peripherals.SPI2,
-        Config {
-            frequency: 5.MHz(),
-            mode: SpiMode::Mode0,
-            ..Config::default()
-        },
+        spi::master::Config::default()
+            .with_frequency(Rate::from_mhz(5))
+            .with_mode(spi::Mode::_0),
     )
+    .unwrap()
     .with_sck(peripherals.GPIO18)
     .with_mosi(peripherals.GPIO23)
     .with_miso(peripherals.GPIO19);
-    let sd_cs = Output::new(peripherals.GPIO5, Level::High);
-    let spi = ExclusiveDevice::new(spi, sd_cs, delay).unwrap();
 
-    let spi_interface = SpiInterface::new(spi);
+    let sd_cs = Output::new(peripherals.GPIO5, Level::High, OutputConfig::default());
+
+    let delay = Delay::new();
+    let spi_dev = ExclusiveDevice::new(spi_bus, sd_cs, delay).unwrap();
+
+    let spi_interface = SpiInterface::new(spi_dev);
     let mut rfid = Mfrc522::new(spi_interface).init().unwrap();
 
     loop {
@@ -180,12 +190,4 @@ async fn main(_spawner: Spawner) {
         }
     }
 }
-
-fn print_hex_bytes(data: &[u8]) {
-    for &b in data.iter() {
-        print!("{:02x} ", b);
-    }
-    println!();
-}
-
 ```

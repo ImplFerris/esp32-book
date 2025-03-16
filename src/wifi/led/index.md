@@ -25,7 +25,7 @@ cp -r esp32-projects/webserver-base ~/YOUR_PROJECT_FOLDER/wifi-led
 ├── rust-toolchain.toml
 ├── src
 │   ├── bin
-│   │   └── async_main.rs
+│   │   └── main.rs
 │   ├── index.html
 │   ├── led.rs
 │   ├── lib.rs

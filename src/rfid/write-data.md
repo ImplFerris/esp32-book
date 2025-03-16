@@ -87,54 +87,55 @@ When you run the program, the output will display the hex representation of "imp
 #![no_std]
 #![no_main]
 
+use defmt::{info, println};
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 use embedded_hal_bus::spi::ExclusiveDevice;
-use esp_backtrace as _;
-use esp_hal::{
-    delay::Delay,
-    gpio::{Level, Output},
-    prelude::*,
-    spi::{
-        master::{Config, Spi},
-        SpiMode,
-    },
-};
-use esp_println::{print, println};
-use log::info;
-use mfrc522::{comm::blocking::spi::SpiInterface, Mfrc522};
+use esp_hal::clock::CpuClock;
+use esp_hal::delay::Delay;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::spi;
+use esp_hal::spi::master::Spi;
+use esp_hal::time::Rate;
+use esp_hal::timer::timg::TimerGroup;
+use esp_println::{self as _, print};
+use mfrc522::comm::blocking::spi::SpiInterface;
+use mfrc522::Mfrc522;
 
-#[main]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_println::logger::init_logger_from_env();
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
     esp_hal_embassy::init(timer0.timer0);
 
     info!("Embassy initialized!");
-    let delay = Delay::new();
 
-    let spi = Spi::new_with_config(
+    let spi_bus = Spi::new(
         peripherals.SPI2,
-        Config {
-            frequency: 5.MHz(),
-            mode: SpiMode::Mode0,
-            ..Config::default()
-        },
+        spi::master::Config::default()
+            .with_frequency(Rate::from_mhz(5))
+            .with_mode(spi::Mode::_0),
     )
+    .unwrap()
     .with_sck(peripherals.GPIO18)
     .with_mosi(peripherals.GPIO23)
     .with_miso(peripherals.GPIO19);
-    let sd_cs = Output::new(peripherals.GPIO5, Level::High);
-    let spi = ExclusiveDevice::new(spi, sd_cs, delay).unwrap();
 
-    let spi_interface = SpiInterface::new(spi);
+    let sd_cs = Output::new(peripherals.GPIO5, Level::High, OutputConfig::default());
+
+    let delay = Delay::new();
+    let spi_dev = ExclusiveDevice::new(spi_bus, sd_cs, delay).unwrap();
+
+    let spi_interface = SpiInterface::new(spi_dev);
     let mut rfid = Mfrc522::new(spi_interface).init().unwrap();
 
     let target_sector = 4;
@@ -206,6 +207,6 @@ fn print_hex_bytes(data: &[u8]) {
     for &b in data.iter() {
         print!("{:02x} ", b);
     }
-    println!();
+    println!("");
 }
 ```
