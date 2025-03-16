@@ -20,13 +20,23 @@ This will open a screen asking you to select options.
 Just save it by pressing "s" in the keyboard.
 
  
+## Update cargo.toml
+
+The nb crate simplifies non-blocking I/O (e.g., reading sensors, UART data) by returning nb::Result with a WouldBlock error when an operation isn't ready, allowing you to retry later without blocking. 
+
+If you're wondering why we need it, the ADC's read_oneshot function returns an nb::Result and may return nb::Error::WouldBlock if it's not ready yet. Wrapping it with nb::block makes your code keep retrying until the ADC has finished its job and returns a proper result.
+
+```toml
+nb = "1.1.0"
+```
+
 ### Configure ADC
 Let's set up the ADC and configure GPIO 13 and GPIO 14, which are mapped to the VRX and VRY pins of the joystick: 
 
 ```rust
 let mut adc2_config = AdcConfig::new();
-let mut vrx_pin = adc2_config.enable_pin(peripherals.GPIO13, Attenuation::Attenuation11dB);
-let mut vry_pin = adc2_config.enable_pin(peripherals.GPIO14, Attenuation::Attenuation11dB);
+let mut vrx_pin = adc2_config.enable_pin(peripherals.GPIO13, Attenuation::_11dB);
+let mut vry_pin = adc2_config.enable_pin(peripherals.GPIO14, Attenuation::_11dB);
 
 let mut adc2 = Adc::new(peripherals.ADC2, adc2_config);
 
@@ -35,7 +45,10 @@ let mut adc2 = Adc::new(peripherals.ADC2, adc2_config);
 We also configure GPIO15 as a pull-up input for the button: 
 
 ```rust
-let btn = Input::new(peripherals.GPIO32, Pull::Up);
+let btn = Input::new(
+    peripherals.GPIO32,
+    InputConfig::default().with_pull(Pull::Up),
+);
 ```
 
 ### Printing Co-ordinates
@@ -123,41 +136,42 @@ cd esp32-projects/joystick-movement/
 #![no_std]
 #![no_main]
 
+use defmt::{info, println};
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use esp_backtrace as _;
-use esp_hal::{
-    analog::adc::{Adc, AdcConfig, Attenuation},
-    gpio::{Input, Pull},
-    prelude::*,
-};
-use esp_println::println;
-use log::info;
+use esp_hal::analog::adc::{Adc, AdcConfig, Attenuation};
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Input, InputConfig, Pull};
+use esp_hal::timer::timg::TimerGroup;
+use esp_println as _;
 
-#[main]
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
+
+#[esp_hal_embassy::main]
 async fn main(_spawner: Spawner) {
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    // generator version: 0.3.1
 
-    esp_println::logger::init_logger_from_env();
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-    let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
+    let timer0 = TimerGroup::new(peripherals.TIMG1);
     esp_hal_embassy::init(timer0.timer0);
 
     info!("Embassy initialized!");
 
-    let btn = Input::new(peripherals.GPIO32, Pull::Up);
+    let btn = Input::new(
+        peripherals.GPIO32,
+        InputConfig::default().with_pull(Pull::Up),
+    );
 
     let mut adc2_config = AdcConfig::new();
-    let mut vrx_pin = adc2_config.enable_pin(peripherals.GPIO13, Attenuation::Attenuation11dB);
-    let mut vry_pin = adc2_config.enable_pin(peripherals.GPIO14, Attenuation::Attenuation11dB);
+    let mut vrx_pin = adc2_config.enable_pin(peripherals.GPIO13, Attenuation::_11dB);
+    let mut vry_pin = adc2_config.enable_pin(peripherals.GPIO14, Attenuation::_11dB);
 
     let mut adc2 = Adc::new(peripherals.ADC2, adc2_config);
-
-    // let delay = Delay::new();
 
     let mut prev_vrx: u16 = 0;
     let mut prev_vry: u16 = 0;
