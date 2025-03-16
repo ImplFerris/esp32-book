@@ -22,7 +22,6 @@ Enable the logging feature also
 - So, scroll to "Flashing, logging and debugging (espflash)" and hit Enter.
 - Then, Select "Use defmt to print messages".
 
-
 Just save it by pressing "s" in the keyboard.
 
 ### Update dependencies
