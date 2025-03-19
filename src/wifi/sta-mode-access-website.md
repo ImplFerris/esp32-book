@@ -119,6 +119,30 @@ let mut stack = Stack::new(
 );
 ```
 
+Boilerplate functions to set up a network interface for the smoltcp TCP/IP stack using the Wi-Fi device (taken from the official esp-hal examples)
+```rust
+pub fn create_interface(device: &mut esp_wifi::wifi::WifiDevice) -> smoltcp::iface::Interface {
+    // users could create multiple instances but since they only have one WifiDevice
+    // they probably can't do anything bad with that
+    smoltcp::iface::Interface::new(
+        smoltcp::iface::Config::new(smoltcp::wire::HardwareAddress::Ethernet(
+            smoltcp::wire::EthernetAddress::from_bytes(&device.mac_address()),
+        )),
+        device,
+        timestamp(),
+    )
+}
+
+// some smoltcp boilerplate
+fn timestamp() -> smoltcp::time::Instant {
+    smoltcp::time::Instant::from_micros(
+        esp_hal::time::Instant::now()
+            .duration_since_epoch()
+            .as_micros() as i64,
+    )
+}
+```
+
 
 **Wi-Fi Operation Mode**:
 
