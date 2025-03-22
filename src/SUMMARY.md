@@ -126,4 +126,5 @@
         - [Multi Generator](./lcd/multi-custom-gen.md)
         - [Multi Custom](./lcd/multi-custom-character.md)
         - [Symbols Index](./lcd/custom-symbols-index.md)
+- [e-Ink (e-Paper)](./e-ink/index.md)
 - [Projects](./projects.md)
