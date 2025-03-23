@@ -22,10 +22,6 @@ For this project, we recommend purchasing the 1.54-inch black and white display 
 
 That said, you're welcome to choose any size or color display if preferred-the core concepts will remain similar. 
 
-## How it works?
-
-E Ink displays use tiny capsules filled with white particles (with a positive charge) and black particles (with a negative charge), all floating in liquid. When electric charges are applied, the particles move to the top of the capsules, forming text or images. These displays rely on surrounding light to show content, so they don't need a backlight. This makes them use very little power. They only need energy when the screen needs to change what's displayed.
-
 ## Resources
 
 - [1.5inch e-Paper V2 Datasheet](https://files.waveshare.com/upload/e/e5/1.54inch_e-paper_V2_Datasheet.pdf)

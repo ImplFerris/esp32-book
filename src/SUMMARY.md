@@ -127,4 +127,8 @@
         - [Multi Custom](./lcd/multi-custom-character.md)
         - [Symbols Index](./lcd/custom-symbols-index.md)
 - [e-Ink (e-Paper)](./e-ink/index.md)
+    - [How it works?](./e-ink/how-it-works.md)
+    - [Circuit](./e-ink/circuit.md)
+    - [Draw Text](./e-ink/draw-text.md)
+
 - [Projects](./projects.md)
