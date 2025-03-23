@@ -1,7 +1,6 @@
-# Draw Text
+# Write Text on e-Paper (e-ink) Display using ESP32
 
 Let's create a simple program to draw text on the display module using the [epd-waveshare](https://docs.rs/epd-waveshare/latest/epd_waveshare/) crate. However, at the time of writing, this crate did not work as expected with the 1.54-inch V2 display. To resolve this, I had to apply some patches, so we will be using our forked version for now. I haven't submitted a pull request yet, as further improvements are needed (partial updates are not working as expected). Nevertheless, our forked version will be sufficient for our exercises. Once the issues are resolved, this chapter will be updated to use the latest fixed version.
-
 
 ## Generate project using esp-generate
 To create the project, use the `esp-generate` command. Run the following:
@@ -14,7 +13,6 @@ This will open a screen asking you to select options.
 
 - First, select the option "Enable unstable HAL features."
 - Select the option "Adds embassy framework support".
-
 
 Just save it by pressing "s" in the keyboard.
 

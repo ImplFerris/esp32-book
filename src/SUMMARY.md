@@ -130,5 +130,5 @@
     - [How it works?](./e-ink/how-it-works.md)
     - [Circuit](./e-ink/circuit.md)
     - [Draw Text](./e-ink/draw-text.md)
-
+    - [Draw Image](./e-ink/draw-image.md)
 - [Projects](./projects.md)
