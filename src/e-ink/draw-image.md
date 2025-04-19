@@ -42,6 +42,18 @@ tinybmp = "0.6.0"
 
 We've already covered the details of the other crates, as well as the basic setup for the SPI and display module code.  So, we won't go over those details again. Instead, let's jump straight into displaying an image and a shape after clearing the screen.
 
+## Black background
+Instead of using a white background, we'll fill the background with black for this project. I chose black because the image we're working with has a dark background, while the main subject is composed of white color. This will give better look.
+
+```rust
+// Clear any existing image
+epd.clear_frame(&mut spi_dev, &mut Delay).unwrap();
+display.clear(Color::Black).unwrap();
+epd.update_and_display_frame(&mut spi_dev, display.buffer(), &mut Delay)
+    .unwrap();
+Timer::after(Duration::from_secs(5)).await;
+```
+
 ## Display the image
 Place the ferris.bmp file inside the src folder. The code is pretty straightforward: load the image as bytes and pass it to the from_slice function of the Bmp. Then, you can use it with the Image.
 
