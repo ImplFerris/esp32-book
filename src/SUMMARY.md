@@ -7,6 +7,7 @@
     - [Quick Start](./quick-start.md)
     - [Async and Embassy](./embassy.md)
     - [FAQ](./faq.md)
+    - [Help & Troubleshooting](./help.md)
 - [Core Concepts](./core-concepts/index.md)
     - [Voltage Divider](./core-concepts/voltage-divider.md)
     - [ADC](./core-concepts/adc/index.md)
