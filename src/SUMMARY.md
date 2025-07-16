@@ -5,9 +5,10 @@
     - [Pinout Diagram](./esp32-intro/pinout.md)
     - [Dev Environment](./dev-env.md)
     - [Quick Start](./quick-start.md)
-    - [Async and Embassy](./embassy.md)
+    - [Abstraction Layers](./abstraction-layers.md)
     - [FAQ](./faq.md)
     - [Help & Troubleshooting](./help.md)
+<!-- - [From std to no_std](./std-to-no-std/index.md) -->
 - [Core Concepts](./core-concepts/index.md)
     - [Voltage Divider](./core-concepts/voltage-divider.md)
     - [ADC](./core-concepts/adc/index.md)
@@ -20,6 +21,7 @@
 - [Fading LED](./led/index.md)
     - [Code](./led/code.md)
     - [External LED](./led/external-led.md)
+- [Embassy](./embassy/index.md)
 - [Buzzer](./buzzer/index.md)
     - [Circuit](./buzzer/circuit.md)
     - [Active Beep](./buzzer/active-beep.md)
@@ -138,4 +140,5 @@
         - [API](./e-ink/weather-station/weather-api.md)
         - [Dashboard](./e-ink/weather-station/dashboard.md)
         - [Fun](./e-ink/weather-station/main.md)
+<!-- - [TFT Display](./tft-display/index.md) -->
 - [Projects](./projects.md)

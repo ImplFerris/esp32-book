@@ -1,6 +1,6 @@
 ## Async
 
-Async programming is a type of concurrent programming that allows tasks to run concurrently without blocking each other.  In embedded systems, it enables microcontrollers to handle multiple tasks, such as reading sensors or controlling other peripherals without waiting for each task to finish. You can read the "[Asynchronous Programming in Rust](https://rust-lang.github.io/async-book/intro.html)" for more details.
+Async programming allows tasks to run concurrently without blocking each other.  In embedded systems, it enables microcontrollers to handle multiple tasks, such as reading sensors or controlling other peripherals without waiting for each task to finish. You can read the "[Asynchronous Programming in Rust](https://rust-lang.github.io/async-book/intro.html)" for more details.
 
 ## Embassy
 
