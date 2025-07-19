@@ -4,7 +4,6 @@ Async programming allows tasks to run concurrently without blocking each other. 
 
 ## Embassy
 
-
 So far, we have worked with code that runs in blocking mode. This means that whenever we ask the program to do something like `delay` for a while or wait for a button press, the CPU stops and waits until that task is finished before continuing. This is simple to understand and works well for small programs, but it becomes limiting when we want to handle multiple tasks at the same time, like reading a sensor, and listening for input; all without blocking each other.
 
 This is where [Embassy](https://github.com/embassy-rs/embassy) comes in. Embassy is an async runtime designed for embedded systems. It allows us to write non-blocking code using Rust's async and await features. Instead of waiting and wasting CPU time, tasks can pause and let others run, making better use of the processor and enabling more responsive and power-efficient applications. It can be used it with ESP32, Pico and other microcontrollers. 

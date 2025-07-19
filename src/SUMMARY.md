@@ -27,6 +27,7 @@
 - [Fading LED](./led/index.md)
     - [Code](./led/code.md)
     - [External LED](./led/external-led.md)
+<!-- - [Buttons](./buttons/index.md) -->
 - [Embassy](./embassy/index.md)
     - [Blinky with Embassy](./embassy/blinky-with-embassy.md)
 - [Buzzer](./buzzer/index.md)
@@ -150,5 +151,7 @@
         - [API](./e-ink/weather-station/weather-api.md)
         - [Dashboard](./e-ink/weather-station/dashboard.md)
         - [Fun](./e-ink/weather-station/main.md)
-<!-- - [TFT Display](./tft-display/index.md) -->
+- [TFT Display](./tft-display/index.md)
+    - [Circuit](./tft-display/circuit.md)
+    - [Write Text](./tft-display/draw-text.md)
 - [Projects](./projects.md)
