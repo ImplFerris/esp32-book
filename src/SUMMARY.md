@@ -100,6 +100,7 @@
     - [Temperature on OLED](./thermistor/oled/index.md)
         - [Code](./thermistor/oled/code.md)
     # TODO: Temperature on WebServer
+- [SPI](spi/index.md)
 - [SD Card (MMC/SDC)](./sdcard/index.md)
     - [Circuit](./sdcard/circuit.md)
     - [Read From SD Card](./sdcard/read-sdcard.md)
@@ -154,4 +155,5 @@
 - [TFT Display](./tft-display/index.md)
     - [Circuit](./tft-display/circuit.md)
     - [Write Text](./tft-display/draw-text.md)
+    - [Draw Image](./tft-display/draw-image.md)
 - [Projects](./projects.md)
