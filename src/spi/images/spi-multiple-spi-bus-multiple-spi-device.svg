@@ -1,0 +1,95 @@
+<svg width="880" height="460" xmlns="http://www.w3.org/2000/svg">
+<!--
+  Source: https://github.com/ImplFerris/ImplFerris
+  Copyright (c) 2025 implrust.com
+  Licensed under CC BY-SA 4.0
+-->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+      refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#009688" />
+    </marker>
+    <marker id="arrowhead-reverse" markerWidth="10" markerHeight="7" 
+      refX="1" refY="3.5" orient="auto">
+      <polygon points="10 0, 0 3.5, 10 7" fill="#009688" />
+    </marker>
+    <marker id="arrowhead-cs" markerWidth="10" markerHeight="7" 
+      refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#FF7043" />
+    </marker>
+  </defs>
+  <style>
+    .label { font: bold 16px sans-serif; fill: #fff; text-anchor: middle; }
+        .label-master{ font: bold 16px sans-serif; fill: #000; text-anchor: middle; }
+    .sublabel { font: italic 14px sans-serif; fill: #000; text-anchor: middle; }
+    .label-slave { font: bold 16px sans-serif; fill: #000; text-anchor: middle; }
+    .sublabel-slave { font: italic 14px sans-serif; fill: #333; text-anchor: middle; }
+    .pin { font: 14px sans-serif; fill: #000; dominant-baseline: middle; }
+    .pin-master { fill: #fff; text-anchor: end; }
+    .line { stroke: #009688; stroke-width: 2; fill: none; }
+    .line-out { marker-end: url(#arrowhead); }
+    .line-in { marker-start: url(#arrowhead-reverse); }
+    .line-cs { stroke: #FF7043; stroke-width: 2; fill: none; marker-end: url(#arrowhead-cs); }
+  </style>
+
+  <!-- ESP32 SPI Controller -->
+  <rect x="40" y="50" width="240" height="380" rx="10" ry="10" fill="#7ade82" />
+  <text x="150" y="220" class="label-master">MCU</text>
+  <text x="150" y="245" class="sublabel">SPI Controller</text>
+  <text x="150" y="265" class="sublabel">(master)</text>
+
+  <!-- HSPI Sub-Block -->
+  <rect x="150" y="70" width="110" height="110" rx="5" ry="5" fill="#00796B" />
+  <text x="180" y="130" class="label">HSPI</text>
+  <text x="245" y="100" class="pin pin-master">SCLK</text>
+  <text x="245" y="120" class="pin pin-master">MOSI</text>
+  <text x="245" y="140" class="pin pin-master">MISO</text>
+  <text x="245" y="160" class="pin pin-master">CS</text>
+
+  <!-- VSPI Sub-Block -->
+  <rect x="150" y="305" width="110" height="110" rx="5" ry="5" fill="#00796B" />
+  <text x="180" y="365" class="label">VSPI</text>
+  <text x="245" y="330" class="pin pin-master">SCLK</text>
+  <text x="245" y="350" class="pin pin-master">MOSI</text>
+  <text x="245" y="370" class="pin pin-master">MISO</text>
+  <text x="245" y="390" class="pin pin-master">CS</text>
+
+  <!-- SPI Peripheral 1 -->
+  <rect x="540" y="60" width="280" height="140" rx="10" ry="10" fill="#CFD8DC" />
+  <text x="730" y="100" class="label-slave">1</text>
+  <text x="730" y="125" class="label-slave">SPI Device</text>
+  <text x="730" y="150" class="sublabel-slave">(slave)</text>
+
+  <!-- SPI Peripheral 2 -->
+  <rect x="540" y="280" width="280" height="140" rx="10" ry="10" fill="#81D4FA" />
+  <text x="730" y="320" class="label-slave">2</text>
+  <text x="730" y="345" class="label-slave">SPI Device</text>
+  <text x="730" y="370" class="sublabel-slave">(slave)</text>
+
+  <!-- Connection lines HSPI -->
+  <path class="line line-out" d="M260 100 H540" />
+  <path class="line line-out" d="M260 120 H540" />
+  <path class="line line-in" d="M260 140 H540" />
+  <path class="line-cs" d="M260 160 H540" />
+
+  <!-- Connection lines VSPI -->
+  <path class="line line-out" d="M260 330 H540" />
+  <path class="line line-out" d="M260 350 H540" />
+  <path class="line line-in" d="M260 370 H540" />
+  <path class="line-cs" d="M260 390 H540" />
+
+  <!-- Slave Pin Labels 1 -->
+  <text x="560" y="100" class="pin">SCLK</text>
+  <text x="560" y="120" class="pin">MOSI/SDI</text>
+  <text x="560" y="140" class="pin">MISO/SDO</text>
+  <text x="560" y="160" class="pin">CS/SS</text>
+
+  <!-- Slave Pin Labels 2 -->
+  <text x="560" y="330" class="pin">SCLK</text>
+  <text x="560" y="350" class="pin">MOSI/SDI</text>
+  <text x="560" y="370" class="pin">MISO/SDO</text>
+  <text x="560" y="390" class="pin">CS/SS</text>
+</svg>
+
+
+

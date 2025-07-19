@@ -101,6 +101,8 @@
         - [Code](./thermistor/oled/code.md)
     # TODO: Temperature on WebServer
 - [SPI](spi/index.md)
+    - [SPI in Rust Ecosystem](./spi/spi-and-rust.md)
+    - [ESP32 SPI](./spi/esp32-spi.md)
 - [SD Card (MMC/SDC)](./sdcard/index.md)
     - [Circuit](./sdcard/circuit.md)
     - [Read From SD Card](./sdcard/read-sdcard.md)

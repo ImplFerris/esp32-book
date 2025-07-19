@@ -1,0 +1,89 @@
+<svg width="880" height="360" xmlns="http://www.w3.org/2000/svg">
+<!--
+  Source: https://github.com/ImplFerris/ImplFerris
+  Copyright (c) 2025 implrust.com
+  Licensed under CC BY-SA 4.0
+-->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+      refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#009688" />
+    </marker>
+    <marker id="arrowhead-reverse" markerWidth="10" markerHeight="7" 
+      refX="1" refY="3.5" orient="auto">
+      <polygon points="10 0, 0 3.5, 10 7" fill="#009688" />
+    </marker>
+    <marker id="arrowhead-cs" markerWidth="10" markerHeight="7" 
+      refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#FF7043" />
+    </marker>
+  </defs>
+  <style>
+    .label { font: bold 16px sans-serif; fill: #000; text-anchor: middle; }
+    .sublabel { font: italic 14px sans-serif; fill: #000; text-anchor: middle; }
+    .label-slave { font: bold 16px sans-serif; fill: #000; text-anchor: middle; }
+    .sublabel-slave { font: italic 14px sans-serif; fill: #333; text-anchor: middle; }
+    .pin { font: 14px sans-serif; fill: #000; dominant-baseline: middle; }
+    .pin-master { fill: #000; text-anchor: end; }
+    .line { stroke: #009688; stroke-width: 2; fill: none; }
+    .line-out { marker-end: url(#arrowhead); }
+    .line-in { marker-start: url(#arrowhead-reverse); }
+    .line-cs { stroke: #FF7043; stroke-width: 2; fill: none; marker-end: url(#arrowhead-cs); }
+  </style>
+
+  <!-- ESP32 SPI Controller -->
+  <rect x="40" y="30" width="240" height="200" rx="10" ry="10" fill="#7ade82" />
+  <text x="150" y="120" class="label">Controller</text>
+  <text x="150" y="160" class="sublabel">(master)</text>
+
+  <!-- SPI Peripheral 1 -->
+  <rect x="540" y="30" width="280" height="140" rx="10" ry="10" fill="#CFD8DC" />
+  <text x="730" y="70" class="label-slave">1</text>
+  <text x="730" y="95" class="label-slave">Peripheral</text>
+  <text x="730" y="120" class="sublabel-slave">(slave)</text>
+
+  <!-- SPI Peripheral 2 -->
+  <rect x="540" y="190" width="280" height="140" rx="10" ry="10" fill="#81D4FA" />
+  <text x="730" y="230" class="label-slave">2</text>
+  <text x="730" y="255" class="label-slave">Peripheral</text>
+  <text x="730" y="280" class="sublabel-slave">(slave)</text>
+
+  <!-- Master Pin Labels -->
+  <text x="260" y="60" class="pin pin-master">SCLK</text>
+  <text x="260" y="90" class="pin pin-master">MOSI</text>
+  <text x="260" y="120" class="pin pin-master">MISO</text>
+  <text x="260" y="170" class="pin pin-master">CS1</text>
+  <text x="260" y="205" class="pin pin-master">CS2</text>
+
+  <!-- Connection lines -->
+  <!-- SCLK -->
+  <path class="line line-out" d="M280 60 H540" />
+  <path class="line line-out" d="M280 60 H460 V220 H540" />
+
+  <!-- MOSI -->
+  <path class="line line-out" d="M280 90 H540" />
+  <path class="line line-out" d="M280 90 H430 V250 H540" />
+
+  <!-- MISO (reverse arrows) -->
+  <path class="line line-in" d="M280 120 H540" />
+  <path class="line line-in" d="M280 120 H400 V275 H540" />
+
+  <!-- CS1 -->
+  <path class="line-cs" d="M280 170 H320 V145 H540" />
+
+  <!-- CS2 -->
+  <path class="line-cs" d="M280 205 H320 V300 H540" />
+
+  <!-- Slave Pin Labels 1 -->
+  <text x="560" y="60" class="pin">SCLK</text>
+  <text x="560" y="90" class="pin">MOSI/SDI</text>
+  <text x="560" y="120" class="pin">MISO/SDO</text>
+  <text x="560" y="145" class="pin">CS/SS</text>
+
+  <!-- Slave Pin Labels 2 -->
+  <text x="560" y="220" class="pin">SCLK</text>
+  <text x="560" y="250" class="pin">MOSI/SDI</text>
+  <text x="560" y="275" class="pin">MISO/SDO</text>
+  <text x="560" y="300" class="pin">CS/SS</text>
+</svg>
+
