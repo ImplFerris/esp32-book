@@ -42,6 +42,9 @@ Not really. While it's possible to write your own implementation, it's usually u
 
 That's where the embedded-hal-bus crate comes in. It provides ready-to-use wrappers that implement the SpiDevice trait for you. These wrappers handle bus access, chip select control, and optional synchronization between devices.
 
+<img style="display: block; margin: auto;" alt="SPI Single Bus Multiple SPI Device" src="./images/spi-embedded-hal-rust-ecosystem.svg"/>
+
+
 - If your project only uses one SPI device and doesn't need sharing, you can use the `ExclusiveDevice` struct - it gives exclusive access to the bus for one device.
 
 - But if your project has multiple SPI devices sharing the same bus, you can choose one of the shared access implementations such as `AtomicDevice` or `CriticalSectionDevice`. These manage access to the bus so that each device gets a turn without interfering with the others.
