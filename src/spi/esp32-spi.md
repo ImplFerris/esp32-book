@@ -2,10 +2,17 @@
 
 The ESP32 includes four SPI controllers, but only two of them: SPI2 and SPI3 are available for general use. These are commonly known as HSPI and VSPI. The other two SPI controllers, SPI0 and SPI1, are reserved for internal usage.
 
-The ESP32 offers flexible GPIO matrix, which allows SPI signals to be mapped to almost any GPIO pin. However, most ESP32 development boards use fixed default pins for convenience.
-
 <img style="display: block; margin: auto;" alt="SPI Multiple Bus Multiple SPI Device" src="./images/spi-multiple-spi-bus-multiple-spi-device.svg"/>
 
+On the ESP32, many GPIO pins are designed to be reused for different functions. For example, one pin might be used as a general-purpose digital output in one application, or as an SPI clock line in another. This is called multiplexing. It means a single physical pin can be connected to different internal signals, depending on how you configure it in your code.
+
+The ESP32 has a few GPIO pins that are directly connected to each SPI controller. These are:
+
+- For HSPI (SPI2): GPIO2, GPIO4, and GPIO12 to GPIO15
+
+- For VSPI (SPI3): GPIO5, GPIO18, GPIO19, and GPIO21 to GPIO23
+
+These pins are wired in the chip to work efficiently with SPI and are commonly used. However, the ESP32 also allows you to reassign the SPI signals to many other GPIOs.
 
 Here are the default SPI pin assignments for the ESP32 Devkit:
 

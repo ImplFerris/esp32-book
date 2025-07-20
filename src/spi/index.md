@@ -52,3 +52,4 @@ As long as you have enough GPIO pins and don't need to connect a large number of
 
 For more in-depth technical details, refer these
 - [Serial Peripheral Interface (SPI) by Sparkfun](https://learn.sparkfun.com/tutorials/serial-peripheral-interface-spi/all) 
+- [Basics of the SPI Communication Protocol](https://www.circuitbasics.com/basics-of-the-spi-communication-protocol/)

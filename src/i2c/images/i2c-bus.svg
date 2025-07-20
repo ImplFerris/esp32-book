@@ -1,0 +1,46 @@
+<svg width="860" height="220" xmlns="http://www.w3.org/2000/svg">
+<!--
+  Source: https://github.com/ImplFerris/ImplFerris
+  Copyright (c) 2025 implrust.com
+  Licensed under CC BY-SA 4.0
+-->
+  <style>
+    .label { font: bold 16px sans-serif; fill: #000; text-anchor: middle; }
+    .sublabel { font: italic 14px sans-serif; fill: #333; text-anchor: middle; }
+    .pin { font: 14px sans-serif; fill: #000; dominant-baseline: middle; }
+    .pin-left { text-anchor: end; }
+  </style>
+
+  <!-- I2C Controller -->
+  <rect x="40" y="30" width="280" height="160" rx="10" ry="10" fill="#7ade82"/>
+  <text x="180" y="100" class="label">Controller</text>
+  <text x="180" y="120" class="sublabel">(I2C controller)</text>
+
+  <!-- I2C Target -->
+  <rect x="500" y="30" width="280" height="160" rx="10" ry="10" fill="#81D4FA"/>
+  <text x="650" y="100" class="label">Target</text>
+  <text x="650" y="120" class="sublabel">(I2C target)</text>
+
+  <!-- SDA line with bidirectional arrow from controller to target -->
+  <path d="M320,90 L500,90 
+           M320,90 L330,80 
+           M320,90 L330,100 
+           M500,90 L490,80 
+           M500,90 L490,100"
+        stroke="#26A69A" stroke-width="2" fill="none"/>
+
+  <text x="310" y="90" class="pin pin-left">SDA</text>
+  <text x="510" y="90" class="pin">SDA</text>
+
+  <!-- SCL line (unidirectional) -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#26A69A" />
+    </marker>
+  </defs>
+  <line x1="320" y1="140" x2="500" y2="140" stroke="#26A69A" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <text x="310" y="140" class="pin pin-left">SCL</text>
+  <text x="510" y="140" class="pin">SCL</text>
+</svg>
+
