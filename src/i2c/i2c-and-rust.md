@@ -47,6 +47,9 @@ It provides wrapper types like AtomicDevice, CriticalSectionDevice, and RefCellD
 
 You can use I2C in two ways:
 
+<img style="display: block; margin: auto;" alt="I2C Single Controller Multiple Devices" src="./images/i2c-embedded-hal-rust-ecosystem.svg"/>
+
+
 - Without sharing: If your application only talks to one I2C device, you can pass the I2C bus instance provided by the HAL (which implements the I2c trait) directly to the driver.
 
 - With sharing: If your application needs to communicate with multiple I2C devices on the same bus, you can wrap the I2C bus instance (provided by the HAL) using one of the sharing types from the embedded-hal-bus crate, such as AtomicDevice or CriticalSectionDevice. This allows safe, coordinated access across multiple drivers.
