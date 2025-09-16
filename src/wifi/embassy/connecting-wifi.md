@@ -55,7 +55,7 @@ let timer1 = TimerGroup::new(peripherals.TIMG0);
 //     peripherals.RADIO_CLK,
 // )
 // .unwrap();
-let esp_wifi_ctrl = mk_static!(
+let esp_wifi_ctrl = &*mk_static!(
     EspWifiController<'static>,
     esp_wifi::init(
         timer1.timer0,
@@ -146,7 +146,7 @@ The connection_task function manages the Wi-Fi connection by continuously checki
 ```rust
 
 #[embassy_executor::task]
-async fn connection_task(mut controller: WifiController<'static>) {
+async fn connection(mut controller: WifiController<'static>) {
     println!("start connection task");
     println!("Device capabilities: {:?}", controller.capabilities());
     loop {
@@ -187,7 +187,7 @@ async fn connection_task(mut controller: WifiController<'static>) {
 
 ```rust
 #[embassy_executor::task]
-async fn net_task(stack: &'static Stack<WifiDevice<'static, WifiStaDevice>>) {
-    stack.run().await
+async fn net_task(mut runner: Runner<'static, WifiDevice<'static>>) {
+    runner.run().await
 }
 ```
