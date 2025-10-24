@@ -161,4 +161,6 @@
     - [Circuit](./tft-display/circuit.md)
     - [Write Text](./tft-display/draw-text.md)
     - [Draw Image](./tft-display/draw-image.md)
+- [Ratatui](./ratatui/index.md)
+    - [Hello Rat](./ratatui/hello-rust/mousefood.md)
 - [Projects](./projects.md)

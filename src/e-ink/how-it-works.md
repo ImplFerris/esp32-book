@@ -14,5 +14,5 @@ That said, it is highly recommended to perform a full refresh after several part
 ## Precautions
 Unlike other display modules, the e-ink display module was a bit finicky. I struggled a lot with this module while trying to figure it out.  You need to be careful when working with it as well.
 
-I recommend you to read the [precautions](https://www.waveshare.com/wiki/1.54inch_e-Paper_Module_Manual#Precautions) from the official website before uing the module. 
+I recommend you to read the [precautions](https://www.waveshare.com/wiki/1.54inch_e-Paper_Module_Manual#Precautions) from the official website before using the module. 
 
