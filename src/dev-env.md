@@ -1,6 +1,6 @@
 # Development Environment
 
-The [official docs](https://docs.esp-rs.org/book/installation/index.html) provides more comprehensive setup instructions. However, I will quickly cover the essential tools and setup needed for our exercises. If you encounter any issues, refer to the official documentation for troubleshooting.
+The [official docs](https://docs.espressif.com/projects/rust/book/getting-started/index.html) provides more comprehensive setup instructions. However, I will quickly cover the essential tools and setup needed for our exercises. If you encounter any issues, refer to the official documentation for troubleshooting.
 
 ## cargo-binstall
 
@@ -21,7 +21,7 @@ After installation, type the espflash command to verify that it works.
 
 
 ## Template by ESP-RS
-We will be using the templates provided by [ESP-RS](https://docs.esp-rs.org/book/writing-your-own-application/generate-project/index.html#esp-generate), which offer two sets:  
+We will be using the templates provided by [ESP-RS](https://docs.espressif.com/projects/rust/book/getting-started/tooling/esp-generate.html), which offer two sets:  
 - **esp-generate**: A `no_std` template. This is the one we will focus on most of the time.  
 - **esp-idf-template**: A `std` template.
 
@@ -50,7 +50,7 @@ esp-generate --chip esp32 PROJECT_NAME
 
 ## Toolchains for RISC-V and Xtensa Targets
 
-You will also need `espup` to install the necessary toolchains. You can find details [here](https://docs.esp-rs.org/book/installation/riscv-and-xtensa.html).
+You will also need `espup` to install the necessary toolchains. You can find details [here](https://docs.espressif.com/projects/rust/book/getting-started/toolchain.html?highlight=espup#xtensa-devices).
 
 ```sh
 cargo install espup
@@ -66,7 +66,7 @@ espup install --toolchain-version 1.84.0
 
 
 ## Using the Project example Without Modifications
-When you create a project with the esp-generate, it automatically sets "esp" as the toolchain channel. If you want to "clone" and use existing projects instead of creating one from scratch, you need to specify the toolchain name as "book-0.22" (as the project's rust-toolchain.toml configured with toolchain name book-0.22). This applies only if you're cloning a project from the esp32-projects repository and want to run it without any modifications.
+When you create a project with the esp-generate, it automatically sets "esp" as the toolchain channel. If you want to "clone" and use existing projects instead of creating one from scratch, you need to specify the toolchain name as "book-1.0.0-beta" (as the project's rust-toolchain.toml configured with toolchain name book-1.0.0-beta). This applies only if you're cloning a project from the esp32-projects repository and want to run it without any modifications.
 
 ```sh
 espup install --name book-1.0.0-beta --toolchain-version 1.84.0

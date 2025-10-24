@@ -30,7 +30,7 @@ If your TFT display includes a resistive touchscreen, it likely uses a touch con
 If you do not need touch input or your module does not have a touch panel, you can leave these pins unconnected.
 
 
-## Connecting e-Paper display with ESP32
+## Connecting TFT display with ESP32
 
 <img style="display: block; margin: auto;" src="./images/esp32-tft-display.png" alt="tft display with esp32"/>
 <br/>

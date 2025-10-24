@@ -5,7 +5,7 @@ In this book, we use the ESP32 DevKit v1 with Rust to build simple and fun proje
 We'll use Rust's `no_std` environment. While it's possible to program the ESP32 in a std environment, I feel it's better to start with no_std, as it enables you to apply the same logic when working with other microcontrollers.
 
 ## Prerequisites
-If you haven't already read the ["The Rust on ESP Book"](https://docs.esp-rs.org/book/introduction.html), I highly recommend doing so first. While this book will cover some aspects of setting up the development environment and basic concepts, it will not go into as much detail to avoid unnecessary repetition, as these topics are already thoroughly explained in the official book.
+If you haven't already read the ["The Rust on ESP Book"](https://docs.espressif.com/projects/rust/book/), I highly recommend doing so first. While this book will cover some aspects of setting up the development environment and basic concepts, it will not go into as much detail to avoid unnecessary repetition, as these topics are already thoroughly explained in the official book.
 
 I also recommend you to read ["The Embedded Rust book"](https://docs.rust-embedded.org/book/intro/index.html) - An introductory book about using the Rust on "Bare Metal" embedded systems.
 
