@@ -8,6 +8,10 @@ The answer is [Mousefood](https://github.com/j-g00da/mousefood).  It is an embed
 
 Ratatui makes building embedded interfaces much easier and faster than writing from scratch. You get ready-made widgets like charts, tables, and progress bars without the complex drawing code.
 
+## Learn Ratatui Basics  
+
+If you're new to Ratatui, take a quick look at the official website at [https://ratatui.rs/](https://ratatui.rs/). It has clear documentation and beginner-friendly tutorials that walk you through creating simple TUI applications like a JSON editor.  Understanding Ratatui's core concepts will help you adapt them for embedded displays.
+
 ## Projects Using Ratatui in Embedded Systems
 
 Here are some interesting projects that use Ratatui in embedded systems:

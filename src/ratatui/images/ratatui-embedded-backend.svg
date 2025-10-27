@@ -1,0 +1,29 @@
+<svg width="200" height="340" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="0" y="0" width="200" height="340" fill="#23272f" />
+
+  <!-- Ratatui Box -->
+  <rect x="35" y="30" width="130" height="50" rx="12" fill="#4f8cfa" stroke="#222" />
+  <text x="100" y="60" font-size="18" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#fff">Ratatui</text>
+
+  <!-- Backend Box -->
+  <rect x="35" y="120" width="130" height="50" rx="12" fill="#6678ff" stroke="#222" />
+  <text x="100" y="150" font-size="18" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#fff">Backend</text>
+
+  <!-- Terminal Box -->
+  <rect x="35" y="210" width="130" height="50" rx="12" fill="#5be3a3" stroke="#222" />
+  <text x="100" y="240" font-size="18" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#23272f">Terminal</text>
+
+  <!-- Arrow Ratatui -> Backend -->
+  <line x1="100" y1="80" x2="100" y2="110" stroke="#a0a7b6" stroke-width="3" marker-end="url(#arrowhead)" />
+
+  <!-- Arrow Backend -> Terminal -->
+  <line x1="100" y1="170" x2="100" y2="200" stroke="#a0a7b6" stroke-width="3" marker-end="url(#arrowhead)" />
+
+  <!-- Smaller Arrowhead Marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="6" markerHeight="4.2" refX="3" refY="2.1" orient="auto">
+      <polygon points="0 0, 6 2.1, 0 4.2" fill="#a0a7b6" />
+    </marker>
+  </defs>
+</svg>
