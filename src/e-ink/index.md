@@ -20,7 +20,7 @@ We will use a Waveshare 1.54-inch e-Ink display module that uses an SPI interfac
 
 For this project, we recommend purchasing the 1.54-inch black and white display module (v2.1).  This version is the most affordable, making it accessible to everyone, and it also boasts a faster refresh rate compared to color variants. Following along will be easier if you use the exact variant.
 
-That said, you're welcome to choose any size or color display if preferred-the core concepts will remain similar. 
+That said, you're welcome to choose any size or color display; the core concepts will remain similar. 
 
 ## Resources
 
