@@ -316,3 +316,15 @@ You can clone (or refer) project I created and navigate to the `hello-rat` folde
 git clone https://github.com/ImplFerris/esp32-projects
 cd hello-rat/
 ```
+
+## Flash the program
+
+Run the following command from your project folder to build and flash the program to your ESP32:
+
+```rust
+cargo run --release
+```
+
+You should now see the Ratatui interface displayed on your Display.
+
+<img style="display: block; margin: auto;" src="../images/ratatui-on-esp32-embedded-rust.jpg" alt="Ratatui on ESP32"/>
