@@ -1,10 +1,10 @@
 # Hello, Rat
 
-In this chapter, we'll write a simple program to get started with Ratatui. We won't do anything fancy here, just the basics to see how it works.
+In this chapter, we'll write a simple program to get started with Ratatui. We will only show the basics here to see how it works.
 
 ## Prerequisites
 
-- You'll need a TFT Display for this chapter. If you haven't completed the [TFT Display chapter](./tft-display/index.md), I recommend finishing that first and then coming back here. Since the circuit connections between the TFT Display and ESP32 are already explained there, we won't repeat those instructions here.​
+- You'll need a TFT Display for this chapter. If you haven't completed the [TFT Display chapter](../../tft-display/index.md), I recommend finishing that first and then coming back here. Since the circuit connections between the TFT Display and ESP32 are already explained there, we won't repeat those instructions here.​
 
 - Ratatui has a nice [tutorial to get started](https://ratatui.rs/tutorials/hello-ratatui/) for building TUI apps. If you already know Ratatui, this exercise is pretty simple - just gluing things together. If you're new, check out the official Ratatui tutorials later to get familiar with the basics and build better UIs.
 
@@ -40,6 +40,8 @@ ili9341 = "0.6.0"
 embedded-graphics = "0.8.1"
 ```
 
+> Note: while this example uses the `ili9341` crate for interacting with the TFT Display, you can use `mousefood` with any display driver crate that implements the embedded-graphics traits.
+
 Now, let's add the ratatui and mousefood crates, which let us use ratatui in an embedded environment. 
 
 ```toml
@@ -56,7 +58,7 @@ For no_std support, you'll need the latest mousefood code from GitHub and a comp
 Let's bring in all the necessary crates and modules for setting up and controlling our TFT display. We'll import everything for graphics rendering with `embedded-graphics`, SPI communication through `esp-hal`, and the `ili9341` display driver. Finally, we'll include the ratatui related imports.
 
 ```rust
-// Embedded Grpahics related
+// Embedded Graphics related
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::*;
 
@@ -195,13 +197,11 @@ loop {
     holding buffers for the duration of a data transfer."
 )]
 
-use defmt::info;
 use esp_hal::clock::CpuClock;
 use esp_hal::main;
-use esp_hal::time::{Duration, Instant};
 use esp_println as _;
 
-// Embedded Grpahics related
+// Embedded Graphics related
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::*;
 

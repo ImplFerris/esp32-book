@@ -18,17 +18,19 @@ Here are some interesting projects that use Ratatui in embedded systems:
 
 ### [Tuitar](https://github.com/orhun/tuitar)
 
-Tuitar is a guitar training tool created by Orhun Parmaksız that runs standalone on ESP32 hardware, offering real-time visualizations from audio input for tuning guitars and other instruments. 
+Tuitar is a guitar training tool created by [Orhun Parmaksız](https://github.com/orhun/) that runs standalone on ESP32 hardware, offering real-time visualizations from audio input for tuning guitars and other instruments. 
 
 Tuitar can track the notes you play on your guitar in real-time and display them on a virtual fretboard.
 
 <img style="display: block; margin: auto;" src="./images/tuitar-embedded-rust-ratatui.jpg" alt="Tuitar"/>
 
-### [Car Display: Suzuki Serial Data Line (SDL) viewer in rust](https://github.com/thatdevsherry/suzui-rs)
-
-<img style="display: block; margin: auto;" src="./images/embedded-rust-ratatui-car-display.jpeg" alt="Ratatui in Car Display"/>
-
 ### [A modern phone OS for ESP32 CYD](https://github.com/Julien-cpsn/Phone-OS)
 
 ![Phone OS for ESP32  CYD](phone-os-embedded-rust-ratatui-mousefood.png)
 
+
+### [Car Display: Suzuki Serial Data Line (SDL) viewer in rust](https://github.com/thatdevsherry/suzui-rs)
+
+Note: This project doesn't use the mousefood crate and isn't truly embedded Ratatui. The code runs on a Raspberry Pi in a standard Linux environment.
+
+<img style="display: block; margin: auto;" src="./images/embedded-rust-ratatui-car-display.jpeg" alt="Ratatui in Car Display"/>
