@@ -1,4 +1,4 @@
-# Hello, Rat
+# Hello, Rat (Using the `ili9341` crate)
 
 In this chapter, we'll write a simple program to get started with Ratatui. We will only show the basics here to see how it works.
 

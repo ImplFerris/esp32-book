@@ -162,5 +162,6 @@
     - [Write Text](./tft-display/draw-text.md)
     - [Draw Image](./tft-display/draw-image.md)
 - [Ratatui](./ratatui/index.md)
-    - [Hello Rat](./ratatui/hello-rust/mousefood.md)
+    - [Hello Rat (`ili9341`)](./ratatui/hello-rust/mousefood_ili9341.md)
+    - [Hello Rat (`mipidsi`)](./ratatui/hello-rust/mousefood_mipidsi.md)
 - [Projects](./projects.md)
