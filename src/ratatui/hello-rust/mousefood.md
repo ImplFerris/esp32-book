@@ -328,3 +328,5 @@ cargo run --release
 You should now see the Ratatui interface displayed on your Display.
 
 <img style="display: block; margin: auto;" src="../images/ratatui-on-esp32-embedded-rust.jpg" alt="Ratatui on ESP32"/>
+
+
