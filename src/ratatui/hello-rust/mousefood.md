@@ -1,4 +1,4 @@
-# Hello, Rat
+# Hello, Rat 
 
 In this chapter, we'll write a simple program to get started with Ratatui. We will only show the basics here to see how it works.
 
@@ -328,3 +328,6 @@ cargo run --release
 You should now see the Ratatui interface displayed on your Display.
 
 <img style="display: block; margin: auto;" src="../images/ratatui-on-esp32-embedded-rust.jpg" alt="Ratatui on ESP32"/>
+
+
+If you want to use the `mipidsi` crate instead of the `ili9341` crate, checkout the next [tutorial](./using-mipidsi.md)

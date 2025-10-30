@@ -163,4 +163,5 @@
     - [Draw Image](./tft-display/draw-image.md)
 - [Ratatui](./ratatui/index.md)
     - [Hello Rat](./ratatui/hello-rust/mousefood.md)
+    - [Using `mipidsi`](./ratatui/hello-rust/using-mipidsi.md)
 - [Projects](./projects.md)
