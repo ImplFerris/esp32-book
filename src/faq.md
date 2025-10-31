@@ -34,5 +34,5 @@ Your code editor should typically assist with imports. However, in some cases, i
 ### 5. Where can I find the documentation for esp-hal?
 You can find the official documentation for esp-hal at the following link:
 
-👉 [ESP-HAL Documentation](https://docs.espressif.com/projects/rust/esp-hal/1.0.0-beta.0/)
+👉 [ESP-HAL Documentation](https://docs.espressif.com/projects/rust/esp-hal/1.0.0/)
 
