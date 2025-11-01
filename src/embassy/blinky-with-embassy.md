@@ -1,4 +1,4 @@
-# Blinking an LED with Embassy on ESP32 in Rust
+# Blinking an LED with ESP RTOS (Embassy) on ESP32 in Rust
 
 Let's re-setup the blinky project but with embassy support.
 
@@ -10,17 +10,19 @@ To start the project, use the `esp-generate` command. Run the following:
 esp-generate --chip esp32 blinky-embassy
 ```
 
-This will open a screen prompting you to select options. This time, choose "Adds embassy framework support" and save to generate the project template with Embassy support. However, if you find that the "embassy" option is unavailable, first enable "Enable unstable HAL features", then proceed with selecting "embassy" support.
+This time, we need to select "Add Embassy framework support". Since this requires unstable feature, we'll first click "Enable unstable HAL features" and then proceed to select Embassy support. Finally, we'll press 's' to save the generated project with Embassy support.
+
+## Key points
 
 If you notice, the main function is now marked as async, along with a few other changes in the code. However, the core logic for blinking the LED remains the same.
 
 The key addition is this part:
 
 ```rust
-let timer0 = TimerGroup::new(peripherals.TIMG1);
-esp_hal_embassy::init(timer0.timer0);
+let timg0 = TimerGroup::new(peripherals.TIMG0);
+esp_rtos::start(timg0.timer0);
 ```
-This sets up a timer that Embassy needs to handle async tasks like delays. We create a timer group using hardware timer TIMG1, then pass one of its timers to esp_hal_embassy::init() to let Embassy use it for time-based operations.
+This sets up a timer that Embassy needs to handle async tasks like delays. We create a timer group using hardware timer TIMG0, then pass one of its timers to esp_rtos::start to let Embassy use it for time-based operations.
 
 
 ## The Full code
@@ -28,6 +30,11 @@ This sets up a timer that Embassy needs to handle async tasks like delays. We cr
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
@@ -40,15 +47,19 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
+
+#[esp_rtos::main]
+async fn main(_spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     let mut led = Output::new(peripherals.GPIO2, Level::High, OutputConfig::default());
 
@@ -56,9 +67,15 @@ async fn main(_spawner: Spawner) {
         led.toggle();
         Timer::after(Duration::from_secs(1)).await;
     }
-
-    // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.0.0-beta.0/examples/src/bin
 }
 ```
 
  
+## Clone the existing project
+
+You can clone (or refer) project I created and navigate to the `async-projects/blinky-embassy` folder.
+
+```sh
+git clone https://github.com/ImplFerris/esp32-projects
+cd esp32-projects/async-projects/blinky-embassy
+```
