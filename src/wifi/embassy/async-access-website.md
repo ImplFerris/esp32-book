@@ -15,7 +15,7 @@ This will open a screen asking you to select options. In order to Enable Wi-Fi, 
 
 - First, select the option "Enable unstable HAL features."
 - Select the option "Enable allocations via the esp-alloc crate."
-- Now, you can enable "Enable Wi-Fi via esp-wifi crate."
+- Now, you can enable "Enable Wi-Fi via esp-radio crate."
 - Select the option "Adds embassy framework support".
 
 Enable the logging feature also
@@ -35,27 +35,31 @@ This crate automatically gets added when you select the Wi-Fi and Embassy option
 
 ```toml
 # Updated embassy-net in Cargo.toml
-embassy-net = { version = "0.6.0", features = [
-    "tcp",
-    "udp",
-    "dhcpv4",
-    "medium-ethernet",
-    #addition:
-    "dns",
+embassy-net = { version = "0.7.1", features = [
+  "defmt",
+  "dhcpv4",
+  "medium-ethernet",
+  "tcp",
+  "udp",
+  #addition:
+  "dns",
 ] }
 ```
 
 ### smoltcp
+
 The smoltcp crate also gets added to the Cargo.toml. We need to add feature "dns-max-server-count-4" in order to use DNS servers.
 
 ```toml
 # Updated smoltcp in Cargo.toml
-smoltcp = { version = "0.11.0", default-features = false, features = [
+smoltcp = { version = "0.12.0", default-features = false, features = [
+    "defmt",
     "medium-ethernet",
+    "multicast",
     "proto-dhcpv4",
-    "proto-igmp",
+    "proto-dns",
     "proto-ipv4",
-    "socket-dhcpv4",
+    "socket-dns",
     "socket-icmp",
     "socket-raw",
     "socket-tcp",
@@ -63,15 +67,6 @@ smoltcp = { version = "0.11.0", default-features = false, features = [
     # addition:
     "dns-max-server-count-4", 
 ] }
-```
-
-### Embassy Executor
-embassy-executor crate is an async/await executor specifically designed for embedded systems.
-
-"When the nightly Cargo feature is not enabled, embassy-executor allocates tasks out of an arena (a very simple bump allocator)."  We can specify the arena size via environment settings or as a feature flag. When we enabled Embassy support, it added the `task-arena-size-20480` feature. But for our task, this won't be enough, so we will use the `task-arena-size-32768` feature instead. You can read more about this [here](https://docs.embassy.dev/embassy-executor/git/cortex-m/index.html#task-arena).
-
-```toml
-embassy-executor = { version = "0.6.0", features = ["task-arena-size-32768"] }
 ```
 
 ### Reqwless
