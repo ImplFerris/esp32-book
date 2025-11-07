@@ -76,8 +76,6 @@
     - [Control LED](./wifi/led/index.md)
         - [API and Webpage](./wifi/led/webpage-control-led.md)
     - [Create Wi-Fi](./wifi/access-point/index.md)
-        - [Setup Wi-Fi](./wifi/access-point/wifi.md)
-        - [Web Module](./wifi/access-point/web.md)
         - [How to Run?](./wifi/access-point/running.md)
 - [I2C](./i2c/index.md)
     - [I2C in Embedded Rust](./i2c/i2c-and-rust.md)

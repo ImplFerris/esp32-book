@@ -2,129 +2,81 @@
 
 So far, we have been using an existing Wi-Fi network. However, you can create your own Wi-Fi network with the ESP32 (just don't expect it to provide internet 😉). In this exercise, we will configure the ESP32 as an access point and run the web server.
 
-## Generate project using esp-generate
 
-We will create the project with Embassy support to take advantage of its async capabilities, making it a better fit for handling tasks that involve concurrency
+## Project base
 
-To create the project, use the `esp-generate` command. Run the following:
+We will once again copy the webserver-base project and work on top of that. 
+
+I recommend you to read these section before you proceed furhter; This will avoid unnecessary repetition of code and explanations.
+- [Creating Web Server](../web-server/index.md) 
+ 
 
 ```sh
-esp-generate --chip esp32 wifi-ap
+git clone https://github.com/ImplFerris/esp32-projects
+cp -r esp32-projects/webserver-base ~/YOUR_PROJECT_FOLDER/wifi-led
 ```
 
-This will open a screen asking you to select options. 
-
-- First, select the option "Enable unstable HAL features."
-- Select the option "Enable allocations via the esp-alloc crate."
-- Now, you can enable "Enable Wi-Fi via esp-radio crate."
-- Select the option "Adds embassy framework support".
-
-Just save it by pressing "s" in the keyboard.
-
-
-## Project structure
-
-We will create two additional modules: web and wifi. These will be similar to what we implemented in the earlier sections while working on station mode. However, this time, the main difference is that we will configure the Wi-Fi to operate in Access Point mode. If you haven't completed the previous sections on Wi-Fi, it's highly recommended to finish them first.
-
-```
-├── build.rs
-├── Cargo.toml
-├── rust-toolchain.toml
-├── src
-│   ├── bin
-│   │   └── main.rs
-│   ├── lib.rs
-│   ├── web.rs
-│   └── wifi.rs
-```
-
-
-## Update dependencies
-
-We will create a simple web server, just like in the previous exercises. Therefore, we will add the same dependency as before.
-
-### picoserve crate
-[picoserve](https://docs.rs/picoserve/latest/picoserve/) is a crate that provides an asynchronous HTTP server designed for bare-metal environments, heavily inspired by Axum. As you might have guessed from the name, it was first created with "Raspberry Pi Pico W" and embassy in mind. But it works fine with other embedded runtimes and hardware, including the ESP32. This crate makes our lives much easier. Without it, we would have to build the web server core from scratch, a time-consuming task that would be beyond the scope of this book.
-
-```toml
-picoserve = { version = "0.17.1", features = ["embassy"] }
-```
-
-### Anyhow
-
-This time, we will use anyhow::Error to handle errors in our code. You can achieve the same result without it, but I want to demonstrate how we can use anyhow for error handling in embedded environment also. This library provides anyhow::Error, a trait object based error type that makes error handling in Rust applications easier and more idiomatic.
+## Setup ESP32 Wi-Fi (in wifi.rs file)
+ 
+To create our own Wi-Fi network with ESP32, we need to set a static IP address using CIDR notation(eg: 192.168.2.1/24) and specify the gateway IP(e.g: 192.168.2.1). We also need to give a Wi-Fi name (SSID), which can be anything you like, as long as it's within 32 characters. While the password is optional for the network, we will set it up with a password. The SSID and password will be loaded from environment variables, just like we did in Station mode.
 
 ```rust
-anyhow = { version = "1.0.95", default-features = false }
+// Unlike Station mode, You can give any IP range(private) that you like
+// IP Address/Subnet mask eg: STATIC_IP=192.168.13.37/24
+const STATIC_IP: &str = "192.168.13.37/24";
+// Gateway IP eg: GATEWAY_IP="192.168.13.37"
+const GATEWAY_IP: &str = "192.168.13.37";
+
+const PASSWORD: &str = env!("PASSWORD");
+const SSID: &str = env!("SSID");
 ```
 
-## Lib Module
-We will define a macro to create a static variable that can be dynamically initialized and accessed across program functions. Additionally, we will declare the required modules in lib.rs. 
+## Update the connection task
+
+The main goal of this function is to ensure the Wi-Fi network is running. If it is not running, it will be restarted. The function checks the Wi-Fi state in a loop. If the state is `WifiApState::Started`, it waits until the Wi-Fi gets stopped (i.e., the `ApStop` event occurs). If that happens, it moves to the second part of the loop.
+
+If the Wi-Fi is not started, we will configure the Wi-Fi with the SSID, an optional password, and WPA2 Personal authentication mode. Then, we will start the Wi-Fi network.
+
+**Note:** 
+
+If you want to run the Wi-Fi without a password, you can comment out the `password` and `auth_method` builder in the `AccessPointConfig`. This will make the Wi-Fi network passwordless, will use the default configuration.
+
 
 ```rust
-#![no_std]
-#![feature(impl_trait_in_assoc_type)]
+#[embassy_executor::task]
+async fn connection(mut controller: WifiController<'static>) {
+    println!("start connection task");
+    println!("Device capabilities: {:?}", controller.capabilities());
+    loop {
+        match esp_radio::wifi::ap_state() {
+            WifiApState::Started => {
+                // wait until we're no longer connected
+                controller.wait_for_event(WifiEvent::ApStop).await;
+                Timer::after(Duration::from_millis(5000)).await
+            }
+            _ => {}
+        }
 
-pub mod web;
-pub mod wifi;
-
-// When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
-#[macro_export]
-macro_rules! mk_static {
-    ($t:ty,$val:expr) => {{
-        static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
-        #[deny(unused_attributes)]
-        let x = STATIC_CELL.uninit().write(($val));
-        x
-    }};
+        if !matches!(controller.is_started(), Ok(true)) {
+            let client_config = ModeConfig::AccessPoint(
+                AccessPointConfig::default()
+                    .with_ssid(SSID.into())
+                    .with_password(PASSWORD.into())
+                    .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal),
+            );
+            controller.set_config(&client_config).unwrap();
+            println!("Starting wifi");
+            controller.start_async().await.unwrap();
+            println!("Wifi started!");
+        }
+    }
 }
 ```
 
+## Update the start_wifi Function
 
-## Initialize Wi-Fi
-
-First, I will import the library module and alias it as "lib". To access the modules defined within the library, we need to use the full project name. For consistency across different exercises, I will alias the module as "lib" in the import, so we can access them using "lib::web" instead of "wifi_ap::web" or "wifi_led::web" in different exercises.
-
-```rust
-use wifi_ap as lib;
-```
-
-To initialize the Wi-Fi controller, we first set up the necessary peripherals, including the timer, random number generator, and radio clock. 
+We need to change the interface to use Access Point mode instead of Station mode.
 
 ```rust
-let timer1 = TimerGroup::new(peripherals.TIMG0);
-// let _init = esp_wifi::init(
-//     timer1.timer0,
-//     esp_hal::rng::Rng::new(peripherals.RNG),
-//     peripherals.RADIO_CLK,
-// )
-// .unwrap();
-
-let rng = Rng::new(peripherals.RNG);
-let esp_wifi_ctrl = &*lib::mk_static!(
-    EspWifiController<'static>,
-    esp_wifi::init(timer1.timer0, rng.clone(), peripherals.RADIO_CLK,).unwrap()
-);
-```
-
-## Spawn tasks
-Next, we create the Wi-Fi stack by calling the start_wifi function, which we will define in the next chapter. This function starts the Wi-Fi connection and network tasks in the background. Additionally, we create a WebApp instance and spawn multiple web tasks based on the pool size. These web tasks are responsible for handling incoming web requests.
-
-
-```rust
-    // Configure and Start Wi-Fi tasks
-    let stack = lib::wifi::start_wifi(esp_wifi_ctrl, peripherals.WIFI, rng, &spawner).await.unwrap();
-
-    // Web Tasks
-    let web_app = lib::web::WebApp::default();
-    for id in 0..lib::web::WEB_TASK_POOL_SIZE {
-        spawner.must_spawn(lib::web::web_task(
-            id,
-            stack,
-            web_app.router,
-            web_app.config,
-        ));
-    }
-    info!("Web server started...");
-
+let wifi_interface = interfaces.ap;
 ```
