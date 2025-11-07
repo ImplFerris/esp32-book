@@ -92,3 +92,32 @@ When you create a project with the esp-generate, it automatically sets "esp" as 
 ```sh
 espup install --name book-1.0.0 --toolchain-version 1.90.0
 ```
+
+## ESP Toolchain in Shell Environment
+
+If you use the Fish shell, add the following line to your Fish config:
+
+```sh
+echo '. ~/export-esp.sh' >> ~/.config/fish/config.fish
+```
+
+If you use bash, add the following line to your ~/.bashrc file:
+
+```sh
+echo '. ~/export-esp.sh' >> ~/.bashrc
+```
+
+Verify the compiler path. Check if the toolchain is now visible:
+```sh
+which xtensa-esp32-elf-gcc
+```
+
+## USB Access
+
+To flash your ESP32, your computer needs permission to access the USB serial port. Run this command to grant access:
+
+```sh
+sudo usermod -a -G dialout $USER
+```
+
+Log out and back in for the changes to take effect.Retry

@@ -20,7 +20,7 @@ This will open a screen asking you to select options.
 
 - First, select the option "Enable unstable HAL features."
 - Select the option "Enable allocations via the esp-alloc crate."
-- Now, you can enable "Enable Wi-Fi via esp-wifi crate."
+- Now, you can enable "Enable Wi-Fi via esp-radio crate."
 - Select the option "Adds embassy framework support".
 
 

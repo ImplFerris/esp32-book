@@ -36,3 +36,32 @@ You can find the official documentation for esp-hal at the following link:
 
 👉 [ESP-HAL Documentation](https://docs.espressif.com/projects/rust/esp-hal/1.0.0/)
 
+### 6. I get this error:
+```sh
+error: linker `xtensa-esp32-elf-gcc` not found
+  = note: No such file or directory (os error 2)
+```
+
+This means the ESP32 cross-compiler is not installed or not in your system PATH.
+
+If you use the Fish shell, add the following line to your Fish config:
+
+```sh
+echo '. ~/export-esp.sh' >> ~/.config/fish/config.fish
+```
+
+If you use bash, add the following line to your ~/.bashrc file:
+
+```sh
+echo '. ~/export-esp.sh' >> ~/.bashrc
+```
+
+Verify the compiler path. Check if the toolchain is now visible:
+```sh
+which xtensa-esp32-elf-gcc
+```
+
+If it shows a valid path, you can build again with:
+```sh
+cargo build --release
+```

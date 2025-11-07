@@ -87,7 +87,7 @@ async fn wait_for_connection(stack: Stack<'_>) {
         Timer::after(Duration::from_millis(500)).await;
     }
 
-    println!("Connect to the AP `esp-wifi` and point your browser to http://{STATIC_IP}/");
+    println!("Connect to the AP `esp-radio` and point your browser to http://{STATIC_IP}/");
     while !stack.is_config_up() {
         Timer::after(Duration::from_millis(100)).await
     }
