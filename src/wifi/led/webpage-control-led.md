@@ -49,7 +49,7 @@ struct LedResponse {
 In the led_handler function, the LedRequest is extracted as a parameter. We can directly store the "is_on" value in the LED_STATE since both are boolean. Finally, the handler will return a JSON response with a LedResponse indicating success.
 
 ```rust
-async fn led_handler(input: picoserve::extract::Json<LedRequest, 0>) -> impl IntoResponse {
+async fn led_handler(input: picoserve::extract::Json<LedRequest>) -> impl IntoResponse {
     crate::led::LED_STATE.store(input.0.is_on, Ordering::Relaxed);
 
     picoserve::response::Json(LedResponse { success: true })

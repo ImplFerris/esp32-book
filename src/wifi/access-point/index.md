@@ -47,14 +47,7 @@ We will create a simple web server, just like in the previous exercises. Therefo
 [picoserve](https://docs.rs/picoserve/latest/picoserve/) is a crate that provides an asynchronous HTTP server designed for bare-metal environments, heavily inspired by Axum. As you might have guessed from the name, it was first created with "Raspberry Pi Pico W" and embassy in mind. But it works fine with other embedded runtimes and hardware, including the ESP32. This crate makes our lives much easier. Without it, we would have to build the web server core from scratch, a time-consuming task that would be beyond the scope of this book.
 
 ```toml
-picoserve = { version = "0.15.0", features = ["embassy"] }
-```
-
-### Task arena size update
-We will update the embassy-executor with the task-arena-size-65536 feature. For more details, refer to the Task Arena Size documentation [here](https://docs.embassy.dev/embassy-executor/git/cortex-m/index.html#task-arena).
-
-```toml
-embassy-executor = { version = "0.7.0", features = ["task-arena-size-65536"] }
+picoserve = { version = "0.17.1", features = ["embassy"] }
 ```
 
 ### Anyhow

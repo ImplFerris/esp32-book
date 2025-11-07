@@ -38,7 +38,10 @@ Serde is a Rust crate used for serializing and deserializing data structures. We
 
 Update the Cargo.toml with the following:
 ```toml
-serde = { version = "1.0.217", default-features = false, features = ["derive"] }
+serde = { version = "1.0.228", default-features = false, features = ["derive"] }
+
+# Enable The "json" feature 
+picoserve = { version = "0.17.1", features = ["embassy", "json"] }
 ```
 
 ## LED Task 
@@ -74,10 +77,8 @@ In the main function, we spawn the led_task to run it in the background. We will
 
 ```rust
 // LED Task
-spawner.must_spawn(lib::led::led_task(Output::new(
-    peripherals.GPIO2,
-    Level::Low,
-)));
+let led = Output::new(peripherals.GPIO2, Level::Low, OutputConfig::default());
+spawner.must_spawn(lib::led::led_task(led));
 ```
 
 
