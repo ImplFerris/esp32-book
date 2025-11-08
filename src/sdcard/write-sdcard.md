@@ -39,6 +39,8 @@ We'll use the onboard RTC for this purpose. While this isn't a perfect solution;
 We will create a struct SdTimeSource that implements the TimeSource trait and uses the Rtc to get the current time. We have to specify how many years have passed since the year 1970 (the Unix epoch). We will get this by subtracting 1970 from the current year. We will also need to specify the month and date information in zero-indexed format, and the time as it is.
 
 ```rust
+static TZ: jiff::tz::TimeZone = jiff::tz::get!("America/New_York");
+
 struct SdTimeSource {
     timer: Rtc<'static>,
 }
@@ -53,13 +55,15 @@ impl SdTimeSource {
     }
 }
 
+static TZ: jiff::tz::TimeZone = jiff::tz::get!("America/New_York");
+
 impl TimeSource for SdTimeSource {
     fn get_timestamp(&self) -> Timestamp {
         let now_us = self.current_time();
 
         // Convert to jiff Time
         let now = jiff::Timestamp::from_microsecond(now_us as i64).unwrap();
-        let now = now.in_tz("UTC").unwrap();
+        let now = now.to_zoned(TZ.clone());
 
         Timestamp {
             year_since_1970: (now.year() - 1970).unsigned_abs() as u8,
@@ -79,14 +83,10 @@ Next, we'll update the SD card initialization code to use SdTimeSource as the ti
 ```rust
 // Timer for sdcard
 let rtc = Rtc::new(peripherals.LPWR);
-const CURRENT_TIME: &str = env!("CURRENT_DATETIME");
-let datetime = jiff::civil::DateTime::strptime("%Y-%m-%d %H:%M:%S", CURRENT_TIME).unwrap();
-let timestamp = datetime
-    .to_zoned(jiff::tz::TimeZone::UTC)
-    .unwrap()
-    .timestamp();
-rtc.set_current_time_us(timestamp.as_microsecond() as u64);
-
+let current_time_us: u64 = env!("CURRENT_TIME_US")
+    .parse()
+    .expect("Invalid microseconds");
+rtc.set_current_time_us(current_time_us);
 
 let sd_timer = SdTimeSource::new(rtc);
 
@@ -202,13 +202,15 @@ impl SdTimeSource {
     }
 }
 
+static TZ: jiff::tz::TimeZone = jiff::tz::get!("America/New_York");
+
 impl TimeSource for SdTimeSource {
     fn get_timestamp(&self) -> Timestamp {
         let now_us = self.current_time();
 
         // Convert to jiff Time
         let now = jiff::Timestamp::from_microsecond(now_us as i64).unwrap();
-        let now = now.in_tz("UTC").unwrap();
+        let now = now.to_zoned(TZ.clone());
 
         Timestamp {
             year_since_1970: (now.year() - 1970).unsigned_abs() as u8,
@@ -253,13 +255,10 @@ async fn main(spawner: Spawner) -> ! {
 
     // Timer for sdcard
     let rtc = Rtc::new(peripherals.LPWR);
-    const CURRENT_TIME: &str = env!("CURRENT_DATETIME");
-    let datetime = jiff::civil::DateTime::strptime("%Y-%m-%d %H:%M:%S", CURRENT_TIME).unwrap();
-    let timestamp = datetime
-        .to_zoned(jiff::tz::TimeZone::UTC)
-        .unwrap()
-        .timestamp();
-    rtc.set_current_time_us(timestamp.as_microsecond() as u64);
+    let current_time_us: u64 = env!("CURRENT_TIME_US")
+        .parse()
+        .expect("Invalid microseconds");
+    rtc.set_current_time_us(current_time_us);
 
     let sd_timer = SdTimeSource::new(rtc);
 
