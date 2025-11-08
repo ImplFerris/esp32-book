@@ -21,11 +21,13 @@ Update your Cargo.toml to add these additional crate along with the existing dep
 
 ```toml
 # sd card driver
-embedded-sdmmc = "0.8.1"
+embedded-sdmmc = "0.9.0"
+
 # To convert Spi bus to SpiDevice
 embedded-hal-bus = "0.3.0"
+
 ## For time parsing
-chrono = { version = "0.4.40", default-features = false }
+jiff = { version = "0.2.16", default-features = false, features = ["static"] }
 ```
 
 ## TimeSource with RTC
@@ -46,14 +48,19 @@ impl SdTimeSource {
         Self { timer }
     }
 
-    fn current_time(&self) -> chrono::NaiveDateTime {
-        self.timer.current_time()
+    fn current_time(&self) -> u64 {
+        self.timer.current_time_us()
     }
 }
 
 impl TimeSource for SdTimeSource {
     fn get_timestamp(&self) -> Timestamp {
-        let now = self.current_time();
+        let now_us = self.current_time();
+
+        // Convert to jiff Time
+        let now = jiff::Timestamp::from_microsecond(now_us as i64).unwrap();
+        let now = now.in_tz("UTC").unwrap();
+
         Timestamp {
             year_since_1970: (now.year() - 1970).unsigned_abs() as u8,
             zero_indexed_month: now.month().wrapping_sub(1) as u8,
@@ -66,19 +73,36 @@ impl TimeSource for SdTimeSource {
 }
 ```
 
-Next, update the SD card initialization code to use SdTimeSource as the time source. We'll pass the current time through an environment variable, parse it using Chrono's NaiveDateTime, and set it as the current time for the RTC.
+Next, we'll update the SD card initialization code to use SdTimeSource as the time source. We'll pass the current time through an environment variable, parse it using jiff, and set it as the current time for the RTC.
 
 
 ```rust
+// Timer for sdcard
 let rtc = Rtc::new(peripherals.LPWR);
 const CURRENT_TIME: &str = env!("CURRENT_DATETIME");
-let current_time = NaiveDateTime::parse_from_str(CURRENT_TIME, "%Y-%m-%d %H:%M:%S").unwrap();
-rtc.set_current_time(current_time);
+let datetime = jiff::civil::DateTime::strptime("%Y-%m-%d %H:%M:%S", CURRENT_TIME).unwrap();
+let timestamp = datetime
+    .to_zoned(jiff::tz::TimeZone::UTC)
+    .unwrap()
+    .timestamp();
+rtc.set_current_time_us(timestamp.as_microsecond() as u64);
+
 
 let sd_timer = SdTimeSource::new(rtc);
 
-let sdcard = SdCard::new(spi, Delay);
-let mut volume_mgr = VolumeManager::new(sdcard, sd_timer);
+println!("Init SD card controller and retrieve card size...");
+let sd_size = sdcard.num_bytes().unwrap();
+println!("card size is {} bytes\r\n", sd_size);
+
+// Now let's look for volumes (also known as partitions) on our block device.
+// To do this we need a Volume Manager. It will take ownership of the block device.
+let volume_mgr = VolumeManager::new(sdcard, sd_timer);
+
+// Try and access Volume 0 (i.e. the first partition).
+// The volume object holds information about the filesystem on that volume.
+let volume0 = volume_mgr.open_volume(VolumeIdx(0)).unwrap();
+
+let root_dir = volume0.open_root_dir().unwrap();
 ```
 
 ## Write to file
@@ -126,29 +150,43 @@ CURRENT_DATETIME="$(date '+%Y-%m-%d %H:%M:%S')" cargo run --release
 
 
 ## Full code
+
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
-use chrono::{Datelike, NaiveDateTime, Timelike};
-use defmt::{info, println};
+use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Delay, Duration, Timer};
-use embedded_hal_bus::spi::ExclusiveDevice;
-use embedded_sdmmc::{SdCard, TimeSource, Timestamp, VolumeIdx, VolumeManager};
 use esp_hal::clock::CpuClock;
-use esp_hal::gpio::{Level, Output, OutputConfig};
-use esp_hal::rtc_cntl::Rtc;
-use esp_hal::spi;
-use esp_hal::spi::master::Spi;
-use esp_hal::time::Rate;
 use esp_hal::timer::timg::TimerGroup;
-use esp_println::{self as _};
+use esp_println::{self as _, println};
+
+// SPI
+use embedded_hal_bus::spi::ExclusiveDevice;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::spi::{self, master::Spi};
+use esp_hal::time::Rate;
+
+// SD card reader
+use embedded_sdmmc::{SdCard, TimeSource, Timestamp, VolumeIdx, VolumeManager};
+
+// For time
+use esp_hal::rtc_cntl::Rtc;
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
+
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
 
 struct SdTimeSource {
     timer: Rtc<'static>,
@@ -159,14 +197,19 @@ impl SdTimeSource {
         Self { timer }
     }
 
-    fn current_time(&self) -> chrono::NaiveDateTime {
-        self.timer.current_time()
+    fn current_time(&self) -> u64 {
+        self.timer.current_time_us()
     }
 }
 
 impl TimeSource for SdTimeSource {
     fn get_timestamp(&self) -> Timestamp {
-        let now = self.current_time();
+        let now_us = self.current_time();
+
+        // Convert to jiff Time
+        let now = jiff::Timestamp::from_microsecond(now_us as i64).unwrap();
+        let now = now.in_tz("UTC").unwrap();
+
         Timestamp {
             year_since_1970: (now.year() - 1970).unsigned_abs() as u8,
             zero_indexed_month: now.month().wrapping_sub(1) as u8,
@@ -178,19 +221,21 @@ impl TimeSource for SdTimeSource {
     }
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
 
-    // Configure SPI
+    // TODO: Spawn some tasks
+    let _ = spawner;
+
     let spi_bus = Spi::new(
         peripherals.SPI2,
         spi::master::Config::default()
@@ -202,28 +247,39 @@ async fn main(_spawner: Spawner) {
     .with_mosi(peripherals.GPIO23)
     .with_miso(peripherals.GPIO19)
     .into_async();
+
     let sd_cs = Output::new(peripherals.GPIO5, Level::High, OutputConfig::default());
     let spi_dev = ExclusiveDevice::new(spi_bus, sd_cs, Delay).unwrap();
 
     // Timer for sdcard
     let rtc = Rtc::new(peripherals.LPWR);
     const CURRENT_TIME: &str = env!("CURRENT_DATETIME");
-    let current_time = NaiveDateTime::parse_from_str(CURRENT_TIME, "%Y-%m-%d %H:%M:%S").unwrap();
-    rtc.set_current_time(current_time);
+    let datetime = jiff::civil::DateTime::strptime("%Y-%m-%d %H:%M:%S", CURRENT_TIME).unwrap();
+    let timestamp = datetime
+        .to_zoned(jiff::tz::TimeZone::UTC)
+        .unwrap()
+        .timestamp();
+    rtc.set_current_time_us(timestamp.as_microsecond() as u64);
 
     let sd_timer = SdTimeSource::new(rtc);
 
     let sdcard = SdCard::new(spi_dev, Delay);
-    let mut volume_mgr = VolumeManager::new(sdcard, sd_timer);
 
     println!("Init SD card controller and retrieve card size...");
-    let sd_size = volume_mgr.device().num_bytes().unwrap();
+    let sd_size = sdcard.num_bytes().unwrap();
     println!("card size is {} bytes\r\n", sd_size);
 
-    let mut volume0 = volume_mgr.open_volume(VolumeIdx(0)).unwrap();
-    let mut root_dir = volume0.open_root_dir().unwrap();
+    // Now let's look for volumes (also known as partitions) on our block device.
+    // To do this we need a Volume Manager. It will take ownership of the block device.
+    let volume_mgr = VolumeManager::new(sdcard, sd_timer);
 
-    let mut my_file = root_dir
+    // Try and access Volume 0 (i.e. the first partition).
+    // The volume object holds information about the filesystem on that volume.
+    let volume0 = volume_mgr.open_volume(VolumeIdx(0)).unwrap();
+
+    let root_dir = volume0.open_root_dir().unwrap();
+
+    let my_file = root_dir
         .open_file_in_dir(
             "FERRIS.TXT",
             embedded_sdmmc::Mode::ReadWriteCreateOrTruncate,
@@ -242,5 +298,4 @@ async fn main(_spawner: Spawner) {
         Timer::after(Duration::from_secs(30)).await;
     }
 }
-
 ```

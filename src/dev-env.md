@@ -120,4 +120,4 @@ To flash your ESP32, your computer needs permission to access the USB serial por
 sudo usermod -a -G dialout $USER
 ```
 
-Log out and back in for the changes to take effect.Retry
+Log out and back in for the changes to take effect.
