@@ -2,7 +2,13 @@
 
 In this section, we'll read all the blocks from the first sector (sector 0). As we mentioned earlier, to read or write to a specific block on the RFID tag, we first need to authenticate with the corresponding sector.
 
+## Create Project
+
+Follow the same steps as before, add the dependencies and complete the base setup for the RFID component. This time, we will modify the code to read the data.
+
+
 ## Authentication
+
 Most tags come with a default key, typically 0xFF repeated six times. You may need to check the documentation to find the default key or try other common keys. For the RFID reader we are using, the default key is 0xFF repeated six times.
 
 For authentication, we need:
@@ -11,6 +17,7 @@ For authentication, we need:
 - The key (hardcoded in this case). 
 
 ## Read the block
+
 Before reading data from a block, we must first authenticate to the block. If the read operation is successful, the function returns 16 bytes of data from the block. The first sector (sector 0) consists of 4 blocks, with absolute block numbers ranging from 0 to 3. For higher sectors, the absolute block numbers increase accordingly (e.g., for sector 1, the blocks are 4, 5, 6, 7).
 
 ```rust
@@ -79,38 +86,56 @@ Where it shows "13 73 73 31", it will display the UID of your RFID tag.
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
-use defmt::{info, println};
+use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_hal::clock::CpuClock;
-use esp_hal::delay::Delay;
+use esp_hal::timer::timg::TimerGroup;
+use esp_println as _;
+
+// SPI
 use esp_hal::gpio::{Level, Output, OutputConfig};
 use esp_hal::spi;
 use esp_hal::spi::master::Spi;
 use esp_hal::time::Rate;
-use esp_hal::timer::timg::TimerGroup;
-use esp_println::{self as _, print};
-use mfrc522::comm::blocking::spi::SpiInterface;
+
+// RFID Reader
+use embedded_hal_bus::spi::ExclusiveDevice;
+use esp_hal::delay::Delay;
 use mfrc522::Mfrc522;
+use mfrc522::comm::blocking::spi::SpiInterface;
+
+use esp_println::{self as _, print, println};
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
+
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
+
+    // TODO: Spawn some tasks
+    let _ = spawner;
 
     let spi_bus = Spi::new(
         peripherals.SPI2,
@@ -121,7 +146,8 @@ async fn main(_spawner: Spawner) {
     .unwrap()
     .with_sck(peripherals.GPIO18)
     .with_mosi(peripherals.GPIO23)
-    .with_miso(peripherals.GPIO19);
+    .with_miso(peripherals.GPIO19)
+    .into_async();
 
     let sd_cs = Output::new(peripherals.GPIO5, Level::High, OutputConfig::default());
 

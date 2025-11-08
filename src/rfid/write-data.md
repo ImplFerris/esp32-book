@@ -11,6 +11,11 @@ We will write data into block 2 of sector 4. First, we will print the data in th
 </div>
 
 
+## Create Project
+
+Follow the same steps as before, add the dependencies and complete the base setup for the RFID component. This time, we will modify the code to write data.
+
+
 ## Write function
 
 As usual, we hardcode the authentication key, calculate the block offset based on the sector, and then derive the absolute block number where we want to write the data. We authenticate the block and proceed to write the data.
@@ -83,41 +88,60 @@ When you run the program, the output will display the hex representation of "imp
 <img style="display: block; margin: auto;" src="./images/rfid-write.png"/>
 
 ## Full code
+
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
-use defmt::{info, println};
+use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_hal::clock::CpuClock;
-use esp_hal::delay::Delay;
+use esp_hal::timer::timg::TimerGroup;
+use esp_println as _;
+
+// SPI
 use esp_hal::gpio::{Level, Output, OutputConfig};
 use esp_hal::spi;
 use esp_hal::spi::master::Spi;
 use esp_hal::time::Rate;
-use esp_hal::timer::timg::TimerGroup;
-use esp_println::{self as _, print};
-use mfrc522::comm::blocking::spi::SpiInterface;
+
+// RFID Reader
+use embedded_hal_bus::spi::ExclusiveDevice;
+use esp_hal::delay::Delay;
 use mfrc522::Mfrc522;
+use mfrc522::comm::blocking::spi::SpiInterface;
+
+use esp_println::{self as _, print, println};
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
+
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
+
+    // TODO: Spawn some tasks
+    let _ = spawner;
 
     let spi_bus = Spi::new(
         peripherals.SPI2,
@@ -128,7 +152,8 @@ async fn main(_spawner: Spawner) {
     .unwrap()
     .with_sck(peripherals.GPIO18)
     .with_mosi(peripherals.GPIO23)
-    .with_miso(peripherals.GPIO19);
+    .with_miso(peripherals.GPIO19)
+    .into_async();
 
     let sd_cs = Output::new(peripherals.GPIO5, Level::High, OutputConfig::default());
 
