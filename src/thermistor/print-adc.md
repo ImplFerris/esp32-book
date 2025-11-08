@@ -6,7 +6,7 @@ In this exercise, we read the ADC value and use it to find the resistance of the
 We will enable async (Embassy) support for this project.  To create the project, use the `esp-generate` command. Run the following:
 
 ```sh
-esp-generate --chip esp32 room-temperature
+esp-generate --chip esp32 thermistor 
 ```
 
 This will open a screen asking you to select options. 
@@ -136,6 +136,7 @@ loop {
 }
 ```
 
+Don't forget to include the ADC_LUT constant from the [ADC Non-Linearity](./esp32-non-linear.md) section.
 
 ## Clone the existing project
 You can also clone (or refer) project I created and navigate to the `room-temperature` folder.
@@ -151,19 +152,30 @@ cd esp32-projects/room-temperature
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use esp_hal::analog::adc::{Adc, AdcConfig, Attenuation};
 use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
 use esp_println as _;
+
+// ADC
+use esp_hal::analog::adc::{Adc, AdcConfig, Attenuation};
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
+
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
 
 const fn kelvin_to_celsius(kelvin: f64) -> f64 {
     kelvin - 273.15
@@ -175,12 +187,9 @@ const fn celsius_to_kelvin(celsius: f64) -> f64 {
 
 const ADC_MAX: f64 = 4095.0; // 4095 for 12-bit ADC
 const B_VALUE: f64 = 3950.0;
-
 const REF_TEMP: f64 = 25.0; // Reference temperature 25°C
 const REF_RES: f64 = 10_000.0; // Thermistor resistance at the Reference Temperature(25°C)
 const REF_TEMP_K: f64 = celsius_to_kelvin(REF_TEMP);
-
-// The resistor value that is connected with thermistor in the voltage divider
 const R1_RES: f64 = REF_RES; // 10_000.0 ohms
 
 fn adc_to_resistance(adc_value: f64) -> f64 {
@@ -199,17 +208,20 @@ fn calculate_temperature(current_res: f64, b_val: f64) -> f64 {
     1.0 / inv_t
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
+
+    // TODO: Spawn some tasks
+    let _ = spawner;
 
     let adc_pin = peripherals.GPIO13;
     let mut adc2_config = AdcConfig::new();
