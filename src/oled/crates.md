@@ -9,22 +9,14 @@ This crate offers a driver interface for the SSD1306 monochrome OLED display, su
 
 ### Add ssd1306 with Async support
 
-At the time of writing, version 0.9.0 was causing issues. Although the problem has been fixed, the version hasn't been tagged yet. For now, we will use the GitHub commit.
-
 ```toml
-# ssd1306 = { version = "0.9.0", features = ["async"] }
-# https://github.com/rust-embedded-community/ssd1306/issues/219
-ssd1306 = { git = "https://github.com/rust-embedded-community/ssd1306.git", rev = "f3a2f7aca421fbf3ddda45ecef0dfd1f0f12330e", features = [
-    "async",
-] }
+ssd1306 = { version = "0.10.0", features = ["async"] }
 ```
 
 ### Add ssd1306 without Async support
 
 ```toml
-# ssd1306 = { version = "0.9.0", features = ["async"] }
-# https://github.com/rust-embedded-community/ssd1306/issues/219
-ssd1306 = { git = "https://github.com/rust-embedded-community/ssd1306.git", rev = "f3a2f7aca421fbf3ddda45ecef0dfd1f0f12330e", features = [] }
+ssd1306 = { version = "0.10.0", features = [] }
 ```
 
 ## Embedded Graphics

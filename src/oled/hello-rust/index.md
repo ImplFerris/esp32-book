@@ -23,30 +23,52 @@ Just save it by pressing "s" in the keyboard.
 ## Update Cargo.toml
 
 ```toml
-ssd1306 = { git = "https://github.com/rust-embedded-community/ssd1306.git", rev = "f3a2f7aca421fbf3ddda45ecef0dfd1f0f12330e", features = [
-    "async",
-] }
+ssd1306 = { version = "0.10.0", features = ["async"] }
 embedded-graphics = "0.8.1"
 ```
 
+## Imports
+
+First add the necessary imports:
+
+```rust
+// I2C
+use esp_hal::i2c::master::Config as I2cConfig; // for convenience, importing as alias
+use esp_hal::i2c::master::I2c;
+use esp_hal::time::Rate;
+
+// OLED
+use ssd1306::{I2CDisplayInterface, Ssd1306Async, prelude::*};
+
+// Embedded Graphics
+use embedded_graphics::{
+    mono_font::{MonoTextStyleBuilder, ascii::FONT_6X10},
+    pixelcolor::BinaryColor,
+    prelude::Point,
+    prelude::*,
+    text::{Baseline, Text},
+};
+```
+
 ## Initialize I2C
+
 We initialize the I2C interface for communication between the ESP32 and the OLED display. The I2C bus is configured with a frequency of 400 kHz and a timeout of 100 bus clock cycles. We assign GPIO18 to the SCL (Serial Clock Line) and GPIO23 to the SDA (Serial Data Line) for I2C communication, and enable async operation for the interface.
 
 ```rust
-let i2c_bus = esp_hal::i2c::master::I2c::new(
-    peripherals.I2C0,
-    esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
-)
-.unwrap()
-.with_scl(peripherals.GPIO18)
-.with_sda(peripherals.GPIO23)
-.into_async();
-
+let i2c_bus = I2c::new(
+        peripherals.I2C0,
+        // I2cConfig is alias of esp_hal::i2c::master::I2c::Config
+        I2cConfig::default().with_frequency(Rate::from_khz(400)),
+    )
+    .unwrap()
+    .with_scl(peripherals.GPIO18)
+    .with_sda(peripherals.GPIO23)
+    .into_async();
 ```
 
 ## Initialize ssd1306 driver
 
-First, we will use the helper struct "I2CDisplayInterface" to create a preconfigured I2C interface for the display. Next, we will use the "Ssd1306Async" struct (for non-async, use "Ssd1306") and pass the interface instance we created, the display size, which is "DisplaySize128x64", and the display rotation. Since we don't want any rotation, we will set it to "DisplayRotation::Rotate0".
+Then, we will use the helper struct "I2CDisplayInterface" to create a preconfigured I2C interface for the display. Next, we will use the "Ssd1306Async" struct (for non-async, use "Ssd1306") and pass the interface instance we created, the display size, which is "DisplaySize128x64", and the display rotation. Since we don't want any rotation, we will set it to "DisplayRotation::Rotate0".
 
 The ssd1306 crate supports three display modes: 
 - BasicMode, which offers basic control with lower-level methods
@@ -66,6 +88,7 @@ display.init().await.unwrap();
 ```
 
 ### Text Style and Position
+
 We will use monospaced fonts to display text. The MonoTextStyleBuilder will help us create the text style, and we will use a 6x10 pixel font size. You can find other monospaced fonts [here](https://docs.rs/embedded-graphics/latest/embedded_graphics/mono_font/ascii/index.html).
 
 If you are using a multi-color OLED display, you can specify different font colors. However, since we are using a monochrome display, we will use "BinaryColor::On" to set the text color to white. This simply turns on those pixels needed to display the text.
@@ -108,21 +131,35 @@ cd esp32-projects/hello-oled
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use embedded_graphics::mono_font::{ascii::FONT_6X10, MonoTextStyleBuilder};
-use embedded_graphics::pixelcolor::BinaryColor;
-use embedded_graphics::prelude::Point;
-use embedded_graphics::prelude::*;
-use embedded_graphics::text::{Baseline, Text};
+
+use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
-use esp_hal::{clock::CpuClock, time::Rate};
 use esp_println as _;
-use ssd1306::mode::DisplayConfigAsync;
-use ssd1306::{
-    prelude::DisplayRotation, size::DisplaySize128x64, I2CDisplayInterface, Ssd1306Async,
+
+// I2C
+use esp_hal::i2c::master::Config as I2cConfig; // for convenience, importing as alias
+use esp_hal::i2c::master::I2c;
+use esp_hal::time::Rate;
+
+// OLED
+use ssd1306::{I2CDisplayInterface, Ssd1306Async, prelude::*};
+
+// Embedded Graphics
+use embedded_graphics::{
+    mono_font::{MonoTextStyleBuilder, ascii::FONT_6X10},
+    pixelcolor::BinaryColor,
+    prelude::Point,
+    prelude::*,
+    text::{Baseline, Text},
 };
 
 #[panic_handler]
@@ -130,21 +167,29 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
+
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
 
-    let i2c_bus = esp_hal::i2c::master::I2c::new(
+    // TODO: Spawn some tasks
+    let _ = spawner;
+
+    let i2c_bus = I2c::new(
         peripherals.I2C0,
-        esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
+        // I2cConfig is alias of esp_hal::i2c::master::I2c::Config
+        I2cConfig::default().with_frequency(Rate::from_khz(400)),
     )
     .unwrap()
     .with_scl(peripherals.GPIO18)
@@ -152,7 +197,6 @@ async fn main(_spawner: Spawner) {
     .into_async();
 
     let interface = I2CDisplayInterface::new(i2c_bus);
-
     // initialize the display
     let mut display = Ssd1306Async::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
