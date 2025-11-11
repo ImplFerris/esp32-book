@@ -36,7 +36,6 @@ For example, a fitness tracker advertises itself so a smartphone can find and co
 A BLE peripheral can be in different discovery modes, affecting how it is detected by central devices. These modes are set using advertisement flags in the advertising packet.
 
 
-
 ### Discovery Modes  
 
 1. **Non-Discoverable**  
@@ -54,7 +53,7 @@ A BLE peripheral can be in different discovery modes, affecting how it is detect
 
 These flags indicate the discovery mode and BLE support level. They are combined using bitwise OR (`|`):  
 
-| Bit  | Flag (in [`bleps`](https://github.com/bjoernQ/bleps) crate) | Description |
+| Bit  | Flag (in [`TrouBLE`](https://github.com/embassy-rs/trouble) crate) | Description |
 |------|--------------------------------|------------------------------------------------|
 | 0    | `AD_FLAG_LE_LIMITED_DISCOVERABLE` | Limited discoverable mode (temporary advertising). |
 | 1    | `LE_GENERAL_DISCOVERABLE` | General discoverable mode (advertises indefinitely). |
@@ -63,16 +62,29 @@ These flags indicate the discovery mode and BLE support level. They are combined
 | 4    | `SIMUL_LE_BR_HOST` | Set if the device can run both Bluetooth Low Energy (LE) and Classic Bluetooth at the same time (Host level). |
 | 5-7  | Reserved | Not used. |
 
-Example Usage
+Example Using Bleps crate:
 
 ```rust
-ble.cmd_set_le_advertising_data(
-    create_advertising_data(&[
-        // Flags
-        AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED)
-        // Other advertisement data
-    ]).unwrap()
-).await
+create_advertising_data(&[
+   // Flags
+   AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED)
+   // Other advertisement data
+]).unwrap()
+```
+
+Example Using Trouble crate:
+
+```rust
+    let mut adv_data = [0; 31];
+    let len = AdStructure::encode_slice(
+        &[
+            // Flags
+            AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
+            // Other advertisement data
+        ],
+        &mut adv_data[..],
+    )
+    .unwrap();
 ```
 
 This configures the peripheral to advertise indefinitely (LE_GENERAL_DISCOVERABLE) while indicating that it does not support Bluetooth Classic (BR_EDR_NOT_SUPPORTED).

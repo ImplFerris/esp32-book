@@ -1,0 +1,83 @@
+<svg viewBox="0 0 900 880" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="900" height="1000" fill="#1a1a1a"/>
+  
+  <!-- Define styles -->
+  <defs>
+    <style>
+      .box { fill: #2d3748; stroke: #4299e1; stroke-width: 2; }
+      .title-box { fill: #1e40af; stroke: #60a5fa; stroke-width: 2; }
+      .text { font-family: Arial, sans-serif; font-size: 14px; fill: #e2e8f0; }
+      .small-text { font-family: Arial, sans-serif; font-size: 12px; fill: #cbd5e0; }
+      .arrow { stroke: #60a5fa; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .section-box { fill: #2d3748; stroke: #4a5568; stroke-width: 2; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#60a5fa" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <rect class="title-box" x="200" y="20" width="500" height="80" rx="5"/>
+  <text class="text" x="450" y="50" text-anchor="middle" font-weight="bold">run( ) Function</text>
+  <text class="small-text" x="450" y="75" text-anchor="middle">Setup BLE stack &amp; server</text>
+
+  <!-- Arrows splitting with label -->
+  <path class="arrow" d="M 400 100 L 200 180"/>
+  <path class="arrow" d="M 500 100 L 700 180"/>
+  <text class="small-text" x="450" y="140" text-anchor="middle" fill="#60a5fa">Start two tasks</text>
+
+  <!-- BLE Task (left) - runs forever -->
+  <rect class="box" x="50" y="180" width="300" height="100" rx="5"/>
+  <text class="text" x="200" y="210" text-anchor="middle" font-weight="bold">ble_task( )</text>
+  <text class="small-text" x="200" y="235" text-anchor="middle">Runs BLE stack</text>
+  <text class="small-text" x="200" y="255" text-anchor="middle">forever in background</text>
+
+  <!-- Main Loop starts (right) -->
+  <rect class="box" x="550" y="180" width="300" height="60" rx="5"/>
+  <text class="text" x="700" y="215" text-anchor="middle" font-weight="bold">Main Loop Start</text>
+
+  <!-- Arrow down to Advertise -->
+  <path class="arrow" d="M 700 240 L 700 300"/>
+
+  <!-- Advertise -->
+  <rect class="box" x="550" y="300" width="300" height="60" rx="5"/>
+  <text class="text" x="700" y="335" text-anchor="middle" font-weight="bold">Advertise</text>
+
+  <!-- Arrow down to Wait -->
+  <path class="arrow" d="M 700 360 L 700 400"/>
+
+  <!-- Wait for Connection -->
+  <rect class="box" x="550" y="400" width="300" height="60" rx="5"/>
+  <text class="text" x="700" y="435" text-anchor="middle" font-weight="bold">Wait for Connection</text>
+
+  <!-- Arrow down to Handle with "When connected" label -->
+  <path class="arrow" d="M 700 460 L 700 520"/>
+  <text class="small-text" x="750" y="490" fill="#60a5fa">When connected</text>
+
+  <!-- Handling Connection Section -->
+  <rect class="section-box" x="450" y="520" width="400" height="220" rx="5"/>
+  <text class="text" x="650" y="550" text-anchor="middle" font-weight="bold" font-size="16">Handling Connection</text>
+
+  <!-- GATT Events Task -->
+  <rect class="box" x="480" y="580" width="150" height="80" rx="5"/>
+  <text class="text" x="555" y="605" text-anchor="middle" font-weight="bold">gatt_events</text>
+  <text class="small-text" x="555" y="625" text-anchor="middle">Handle</text>
+  <text class="small-text" x="555" y="645" text-anchor="middle">read/write</text>
+
+  <!-- Custom Task -->
+  <rect class="box" x="690" y="580" width="150" height="80" rx="5"/>
+  <text class="text" x="765" y="605" text-anchor="middle" font-weight="bold">custom_task</text>
+  <text class="small-text" x="765" y="625" text-anchor="middle">Send</text>
+  <text class="small-text" x="765" y="645" text-anchor="middle">notifications</text>
+
+
+  <!-- Description -->
+  <text class="small-text" x="650" y="690" text-anchor="middle">Run until disconnection</text>
+
+  <!-- Arrow from Handle back to Advertise -->
+  <path class="arrow" d="M 650 740 L 650 850 L 350 850 L 350 330 L 550 330"/>
+  <text class="small-text" x="250" y="775" fill="#60a5fa">On disconnect</text>
+
+
+</svg>
