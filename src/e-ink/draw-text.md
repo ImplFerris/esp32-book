@@ -125,60 +125,75 @@ cd esp32-projects/e-ink-hello/
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Delay, Duration, Timer};
-use embedded_graphics::mono_font::ascii::FONT_10X20;
-use embedded_graphics::prelude::*;
-use epd_waveshare::prelude::WaveshareDisplay;
+use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
 use esp_hal::timer::timg::TimerGroup;
 use esp_println as _;
 
-use embedded_graphics::mono_font::MonoTextStyleBuilder;
-use embedded_graphics::text::{Baseline, Text};
-use embedded_hal_bus::spi::ExclusiveDevice;
-use epd_waveshare::color::Color;
-use epd_waveshare::epd1in54_v2::{Display1in54, Epd1in54};
-use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
-use esp_hal::spi::master::{Config as SpiConfig, Spi};
-use esp_hal::spi::Mode as SpiMode;
+// SPI
+use esp_hal::spi;
+use esp_hal::spi::master::Spi;
 use esp_hal::time::Rate;
 
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-    esp_println::println!("Panic occurred: {:?}", info);
+// epd
+use epd_waveshare::color::Color;
+use epd_waveshare::epd1in54_v2::{Display1in54, Epd1in54};
+use epd_waveshare::prelude::WaveshareDisplay;
 
+// embedded graphics
+use embedded_graphics::mono_font::MonoTextStyleBuilder;
+use embedded_graphics::mono_font::ascii::FONT_10X20;
+use embedded_graphics::prelude::*;
+use embedded_graphics::text::{Baseline, Text};
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
+
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
 
-    // Initialize SPI
-    let spi = Spi::new(
+    // TODO: Spawn some tasks
+    let _ = spawner;
+
+    let spi_bus = Spi::new(
         peripherals.SPI2,
-        SpiConfig::default()
+        spi::master::Config::default()
             .with_frequency(Rate::from_mhz(4))
-            .with_mode(SpiMode::_0),
+            .with_mode(spi::Mode::_0),
     )
     .unwrap()
     //CLK
     .with_sck(peripherals.GPIO18)
     //DIN
     .with_mosi(peripherals.GPIO23);
+
     let cs = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
-    let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay);
+    let mut spi_dev = ExclusiveDevice::new(spi_bus, cs, Delay);
 
     // Initialize Display
     let busy_in = Input::new(
@@ -206,7 +221,7 @@ async fn main(_spawner: Spawner) {
 
     loop {
         info!("Hello world!");
-        Timer::after(Duration::from_secs(60)).await;
+        Timer::after(Duration::from_secs(1)).await;
     }
 }
 
