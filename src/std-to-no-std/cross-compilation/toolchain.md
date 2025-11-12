@@ -25,6 +25,8 @@ In your project root, create a file called rust-toolchain.toml and add this:
 channel = "esp"
 ```
 
+You can use a custom toolchain instead of the default "esp" toolchain. In this book, I'm using a custom toolchain called "book-1.0.0". Just make sure your toolchain is properly installed and that you use the exact name; otherwise, you'll see an error saying it's not installed.
+
 ## Build-std
 
 Try to build again. It still won't compile, but this time the error looks a little different. Now it just says it can't find the crate for std.

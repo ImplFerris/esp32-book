@@ -19,6 +19,7 @@
     - [Init ESP HAL](./std-to-no-std/init-esp-hal.md)
     - [LED](./std-to-no-std/led.md)
     - [Linker Script](./std-to-no-std/linker-script.md)
+    - [App Descriptor](./std-to-no-std/esp-idf-app-descriptor.md)
     - [Flash](./std-to-no-std/flash.md)
 - [PWM](./core-concepts/pwm/index.md)
     - [PWM in Depth](./core-concepts/pwm/pwm-in-depth.md)
