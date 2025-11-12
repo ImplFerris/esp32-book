@@ -18,7 +18,7 @@ Just save it by pressing "s" in the keyboard.
 ## Update cargo.toml
 
 ```toml
-embedded-hal-bus = { version = "0.1" }
+embedded-hal-bus = { version = "0.3" }
 display-interface-spi = "0.5"
 ili9341 = "0.6.0"
 embedded-graphics = "0.8.1"
@@ -86,7 +86,7 @@ let cs = Output::new(peripherals.GPIO15, Level::Low, OutputConfig::default());
 let dc = Output::new(peripherals.GPIO2, Level::Low, OutputConfig::default());
 let reset = Output::new(peripherals.GPIO4, Level::Low, OutputConfig::default());
 
-let spi_dev = ExclusiveDevice::new_no_delay(spi, cs);
+let spi_dev = ExclusiveDevice::new_no_delay(spi, cs).unwrap();
 let interface = SPIInterface::new(spi_dev, dc);
 ```
 
@@ -97,8 +97,6 @@ This time, we've added one more step: we create an SPIInterface using the displa
 To initialize the display, we pass the SPI Interface, reset pin, delay, orientation, and screen size to the Ili9341 driver. This sets up everything the driver needs to start working with the display.
 
 ```rust
-let reset = Output::new(peripherals.GPIO4, Level::Low, OutputConfig::default());
-
 let mut display = Ili9341::new(
         interface,
         reset,
@@ -153,8 +151,12 @@ cd esp32-projects/tft-display-hello/
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
-// Usual imports
 use defmt::info;
 use esp_hal::clock::CpuClock;
 use esp_hal::main;
@@ -174,9 +176,9 @@ use profont::{PROFONT_18_POINT, PROFONT_24_POINT};
 use display_interface_spi::SPIInterface;
 use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_hal::delay::Delay;
+use esp_hal::spi::Mode as SpiMode;
 use esp_hal::spi::master::Config as SpiConfig;
 use esp_hal::spi::master::Spi;
-use esp_hal::spi::Mode as SpiMode;
 use esp_hal::time::Rate; // For specifying SPI frequency
 use ili9341::{DisplaySize240x320, Ili9341, Orientation};
 
@@ -188,8 +190,14 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
+
 #[main]
 fn main() -> ! {
+    // generator version: 1.0.0
+
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
@@ -209,7 +217,7 @@ fn main() -> ! {
     let dc = Output::new(peripherals.GPIO2, Level::Low, OutputConfig::default());
     let reset = Output::new(peripherals.GPIO4, Level::Low, OutputConfig::default());
 
-    let spi_dev = ExclusiveDevice::new_no_delay(spi, cs);
+    let spi_dev = ExclusiveDevice::new_no_delay(spi, cs).unwrap();
     let interface = SPIInterface::new(spi_dev, dc);
 
     let mut display = Ili9341::new(
@@ -224,7 +232,6 @@ fn main() -> ! {
     display.clear(Rgb565::WHITE).unwrap();
 
     let text_style = MonoTextStyle::new(&PROFONT_24_POINT, Rgb565::RED);
-
     Text::with_baseline("impl Rust", Point::new(50, 150), text_style, Baseline::Top)
         .draw(&mut display)
         .unwrap();
@@ -238,7 +245,7 @@ fn main() -> ! {
     loop {
         info!("Hello world!");
         let delay_start = Instant::now();
-        while delay_start.elapsed() < Duration::from_millis(5000) {}
+        while delay_start.elapsed() < Duration::from_millis(500) {}
     }
 }
 ```
