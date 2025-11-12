@@ -2,6 +2,7 @@
 
 Let's do something more fun with the e-ink display than just showing static text or images. We'll build a simple weather station that fetches real-time weather data from the internet using an HTTP API and updates the display with the latest info.  This is like a "Hello, World" program for the e-paper.
 
+> TODO: This section still uses esp-hal 1.0.0-beta instead of the stable 1.0.0 release. I ran into dependency issues during migration and didn't have time to resolve them, so I'm postponing this for now. I'll update to the stable version soon.
 
 ## Prerequisite
 
@@ -20,7 +21,7 @@ This will open a screen asking you to select options.
 
 - First, select the option "Enable unstable HAL features."
 - Select the option "Enable allocations via the esp-alloc crate."
-- Now, you can enable "Enable Wi-Fi via esp-wifi crate."
+- Now, you can enable "Enable Wi-Fi via esp-radio crate."
 - Select the option "Adds embassy framework support".
 
 

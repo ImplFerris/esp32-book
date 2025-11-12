@@ -5,7 +5,6 @@ In this section, we will be using Hitachi HD44780 compatible LCD (Liquid Crystal
 You can display ASCII character and up to 8 custom characters.
 
 
-
 ## Variants
 It comes in various variants, such as 16x2 (16 columns, 2 rows) and 20x4 (20 columns, 4 rows), and also based on backlight color (blue, yellow, or green). The one I have displays white characters with a blue backlight. However, you can choose any variant as it won't significantly affect the code.  Most of these variants will have 16 pins.
 

@@ -1,0 +1,87 @@
+<svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1000" height="520" fill="#1a1a1a"/>
+   
+  <!-- Main root box -->
+  <rect x="405" y="50" width="180" height="50" fill="#4A90E2" stroke="#2E5C8A" stroke-width="2" rx="5"/>
+  <text x="500" y="80" font-size="16" font-weight="bold" text-anchor="middle" fill="white">
+    BLE Address Types
+  </text>
+  
+  <!-- Connecting lines from root -->
+  <line x1="450" y1="100" x2="300" y2="150" stroke="#888" stroke-width="2"/>
+  <line x1="550" y1="100" x2="700" y2="150" stroke="#888" stroke-width="2"/>
+  
+  <!-- Public Address Box -->
+  <rect x="200" y="150" width="200" height="60" fill="#5CB85C" stroke="#449D44" stroke-width="2" rx="5"/>
+  <text x="300" y="175" font-size="16" font-weight="bold" text-anchor="middle" fill="white">
+    Public Address
+  </text>
+  <text x="300" y="195" font-size="12" text-anchor="middle" fill="white">
+    IEEE Assigned
+  </text>
+  
+  <!-- Public Address description -->
+  <text x="300" y="235" font-size="11" text-anchor="middle" fill="#aaa">
+    * Globally unique
+  </text>
+  <text x="300" y="250" font-size="11" text-anchor="middle" fill="#aaa">
+    * Never changes
+  </text>
+  <text x="300" y="265" font-size="11" text-anchor="middle" fill="#aaa">
+    * Permanent identifier
+  </text>
+  
+  <!-- Random Address Box -->
+  <rect x="600" y="150" width="200" height="60" fill="#F0AD4E" stroke="#EC971F" stroke-width="2" rx="5"/>
+  <text x="700" y="175" font-size="16" font-weight="bold" text-anchor="middle" fill="white">
+    Random Address
+  </text>
+  <text x="700" y="195" font-size="12" text-anchor="middle" fill="white">
+    Device Generated
+  </text>
+  
+  <!-- Connecting lines from Random -->
+  <line x1="650" y1="210" x2="550" y2="280" stroke="#888" stroke-width="2"/>
+  <line x1="750" y1="210" x2="850" y2="280" stroke="#888" stroke-width="2"/>
+  
+  <!-- Static Random Address -->
+  <rect x="450" y="280" width="200" height="60" fill="#9B59B6" stroke="#7D3C98" stroke-width="2" rx="5"/>
+  <text x="550" y="305" font-size="14" font-weight="bold" text-anchor="middle" fill="white">
+    Static Random
+  </text>
+  <text x="550" y="325" font-size="11" text-anchor="middle" fill="white">
+    Fixed until device restart
+  </text>
+  
+  <!-- Private Random Address -->
+  <rect x="750" y="280" width="200" height="60" fill="#E74C3C" stroke="#C0392B" stroke-width="2" rx="5"/>
+  <text x="850" y="305" font-size="14" font-weight="bold" text-anchor="middle" fill="white">
+    Private Random
+  </text>
+  <text x="850" y="325" font-size="11" text-anchor="middle" fill="white">
+    Changes periodically
+  </text>
+  
+  <!-- Connecting lines from Private -->
+  <line x1="800" y1="340" x2="700" y2="390" stroke="#888" stroke-width="2"/>
+  <line x1="900" y1="340" x2="900" y2="390" stroke="#888" stroke-width="2"/>
+  
+  <!-- Resolvable -->
+  <rect x="600" y="390" width="200" height="60" fill="#E67E22" stroke="#D35400" stroke-width="2" rx="5"/>
+  <text x="700" y="415" font-size="13" font-weight="bold" text-anchor="middle" fill="white">
+    Resolvable
+  </text>
+  <text x="700" y="435" font-size="10" text-anchor="middle" fill="white">
+    Can be linked with IRK
+  </text>
+  
+  <!-- Non-Resolvable -->
+  <rect x="820" y="390" width="160" height="60" fill="#95A5A6" stroke="#7F8C8D" stroke-width="2" rx="5"/>
+  <text x="900" y="415" font-size="13" font-weight="bold" text-anchor="middle" fill="white">
+    Non-Resolvable
+  </text>
+  <text x="900" y="435" font-size="10" text-anchor="middle" fill="white">
+    Completely anonymous
+  </text>
+   
+</svg>

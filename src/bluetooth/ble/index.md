@@ -17,6 +17,14 @@ GAP (Generic Access Profile) defines how BLE devices advertise, connect, and est
 
 GATT (Generic Attribute Profile) defines how BLE devices exchange data. It organizes data in a hierarchy of services and characteristics, allowing clients (e.g., a smartphone app) to read, write, and subscribe to updates from a BLE peripheral (e.g., a sensor).
 
+## Rust crates
+
+There are two main Rust crates available for working with Bluetooth Low Energy (BLE):
+
+1. [Bleps](https://github.com/bjoernQ/bleps/): A lightweight BLE peripheral stack designed primarily for testing, demos, and personal projects. It is not intended to meet certification standards. The official repository recommends using the `Trouble` crate if you plan to work with asynchronous code.
+
+2. [Trouble (or TrouBLE)](https://embassy.dev/trouble/): A Rust-based implementation of a BLE Host, with the long-term goal of achieving qualification. In the BLE specification, the Host operates as the upper layer of the Host Controller Interface (HCI), while the Controller forms the lower layer.
+
 
 ## References
 If you want deeper understanding, you can refer the following resources

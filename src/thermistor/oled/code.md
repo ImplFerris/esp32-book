@@ -3,7 +3,7 @@
 We will enable async (Embassy) support for this project.  To create the project, use the `esp-generate` command. Run the following:
 
 ```sh
-esp-generate --chip esp32 room-temperature
+esp-generate --chip esp32 oled-temperature
 ```
 
 This will open a screen asking you to select options. 
@@ -20,20 +20,47 @@ We'll be using the ssd1306 crate, the "libm" math library, and heapless for stri
 
 
 ```toml
-libm = "0.2.11"
+libm = "0.2.15"
 nb = "1.1.0"
-ssd1306 = { git = "https://github.com/rust-embedded-community/ssd1306.git", rev = "f3a2f7aca421fbf3ddda45ecef0dfd1f0f12330e", features = [
-    "async",
-] }
+ssd1306 = { version = "0.10.0", features = ["async"] }
 embedded-graphics = "0.8.1"
-heapless = "0.8.0"
+heapless = "0.9.1"
 ```
 
 ## Setup
 
 You need to initialize and set up both the OLED display and the thermistor. I'm skipping the initialization code here to avoid repetition and will focus only on the additional steps.
 
-First, set up a buffer with a heapless string to dynamically create the string for printing the temperature:
+### Required Additional imports
+
+```rust
+// ADC
+use esp_hal::analog::adc::{Adc, AdcConfig, Attenuation};
+
+// I2C
+use esp_hal::i2c::master::Config as I2cConfig; // for convenience, importing as alias
+use esp_hal::i2c::master::I2c;
+use esp_hal::time::Rate;
+
+// Embedded Graphics
+use embedded_graphics::prelude::*;
+use embedded_graphics::{
+    mono_font::{MonoTextStyleBuilder, ascii::FONT_6X10},
+    pixelcolor::BinaryColor,
+    prelude::Point,
+    text::{Baseline, Text},
+};
+
+// OLED
+use ssd1306::{I2CDisplayInterface, Ssd1306Async, prelude::*};
+
+// Heapless
+use heapless::String;
+// For writing into heapless
+use core::fmt::Write;
+```
+
+Then, set up a buffer with a heapless string to dynamically create the string for printing the temperature:
 ```rust
 let mut buffer: String<64> = String::new();
 ```
@@ -85,34 +112,52 @@ cd esp32-projects/oled-temperature
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
-use core::fmt::Write;
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use esp_hal::analog::adc::{Adc, AdcConfig, Attenuation};
 use esp_hal::clock::CpuClock;
-use esp_hal::time::Rate;
 use esp_hal::timer::timg::TimerGroup;
 use esp_println as _;
 
+// ADC
+use esp_hal::analog::adc::{Adc, AdcConfig, Attenuation};
+
+// I2C
+use esp_hal::i2c::master::Config as I2cConfig; // for convenience, importing as alias
+use esp_hal::i2c::master::I2c;
+use esp_hal::time::Rate;
+
+// Embedded Graphics
 use embedded_graphics::prelude::*;
 use embedded_graphics::{
-    mono_font::{ascii::FONT_6X10, MonoTextStyleBuilder},
+    mono_font::{MonoTextStyleBuilder, ascii::FONT_6X10},
     pixelcolor::BinaryColor,
     prelude::Point,
     text::{Baseline, Text},
 };
+
+// OLED
+use ssd1306::{I2CDisplayInterface, Ssd1306Async, prelude::*};
+
+// Heapless
 use heapless::String;
-use ssd1306::{
-    mode::DisplayConfigAsync, prelude::DisplayRotation, size::DisplaySize128x64,
-    I2CDisplayInterface, Ssd1306Async,
-};
+// For writing into heapless
+use core::fmt::Write;
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
+
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
 
 const fn kelvin_to_celsius(kelvin: f64) -> f64 {
     kelvin - 273.15
@@ -124,12 +169,9 @@ const fn celsius_to_kelvin(celsius: f64) -> f64 {
 
 const ADC_MAX: f64 = 4095.0; // 4095 for 12-bit ADC
 const B_VALUE: f64 = 3950.0;
-
 const REF_TEMP: f64 = 25.0; // Reference temperature 25°C
 const REF_RES: f64 = 10_000.0; // Thermistor resistance at the Reference Temperature(25°C)
 const REF_TEMP_K: f64 = celsius_to_kelvin(REF_TEMP);
-
-// The resistor value that is connected with thermistor in the voltage divider
 const R1_RES: f64 = REF_RES; // 10_000.0 ohms
 
 fn adc_to_resistance(adc_value: f64) -> f64 {
@@ -148,17 +190,19 @@ fn calculate_temperature(current_res: f64, b_val: f64) -> f64 {
     1.0 / inv_t
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
+
+    let _ = spawner;
 
     // ADC Setup for thermistor
     let adc_pin = peripherals.GPIO13;
@@ -167,18 +211,23 @@ async fn main(_spawner: Spawner) {
     let mut adc2 = Adc::new(peripherals.ADC2, adc2_config);
 
     // configure the display
-    let i2c_bus = esp_hal::i2c::master::I2c::new(
+    let i2c_bus = I2c::new(
         peripherals.I2C0,
-        esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
+        // I2cConfig is alias of esp_hal::i2c::master::I2c::Config
+        I2cConfig::default().with_frequency(Rate::from_khz(400)),
     )
     .unwrap()
     .with_scl(peripherals.GPIO18)
     .with_sda(peripherals.GPIO23)
     .into_async();
+
     let interface = I2CDisplayInterface::new(i2c_bus);
+
+    // initialize the display
     let mut display = Ssd1306Async::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
     display.init().await.unwrap();
+
     let text_style = MonoTextStyleBuilder::new()
         .font(&FONT_6X10)
         .text_color(BinaryColor::On)

@@ -21,7 +21,15 @@ Official HALs include embassy-stm32 (STM32), embassy-nrf (nRF52/53/54/91), embas
 Embassy comes with many built-in features that make embedded development easier. For example, it includes embassy-time for handling timers and delays, embassy-net for networking support, and embassy-usb for building USB device functionality and much more.
 
 
+## ESP RTOS
+
+The esp-hal ecosystem includes a crate named `esp-rtos`, provides integration between esp-hal and the Embassy asynchronous framework.
+
+> An RTOS (Real-Time Operating System) implementation for esp-hal. This crate provides the runtime necessary to run async code on top of esp-hal, and implements the necessary capabilities (threads, queues, etc.) required by esp-radio.
+
+
 ## Useful Resources
 
 - [Embassy Book](https://embassy.dev/book/#_introduction) : The Embassy Book is for everyone who wants to use Embassy and understand how Embassy works.
 - [Embassy Github](https://github.com/embassy-rs/embassy)
+- [esp-rtos docs](https://docs.rs/crate/esp-rtos/latest)

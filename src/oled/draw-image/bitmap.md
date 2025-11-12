@@ -13,33 +13,27 @@ I have created the Ferris BMP file, which you can use for this exercise. Downloa
 
 <img style="display: block; margin: auto;" alt="ferris bmp file" src="../images/ferris.bmp"/>
 
-## Generate project using esp-generate
-We will enable async (Embassy) support for this project.  To create the project, use the `esp-generate` command. Run the following:
+## Project base
+
+We will copy the old-image project and work on top of that. 
 
 ```sh
-esp-generate --chip esp32 oled-image
+git clone https://github.com/ImplFerris/esp32-projects
+cp -r esp32-projects/old-image ~/YOUR_PROJECT_FOLDER/oled-bmp
 ```
-
-This will open a screen asking you to select options. 
-
-- Select the option "Enable unstable HAL features"
-- Then, select the option "Adds embassy framework support".
-
-Just save it by pressing "s" in the keyboard.
 
 ## Update Cargo.toml
 
+We need one more crate called "tinybmp" to load the bmp image.
+
 ```toml
-ssd1306 = { git = "https://github.com/rust-embedded-community/ssd1306.git", rev = "f3a2f7aca421fbf3ddda45ecef0dfd1f0f12330e", features = [
-    "async",
-] }
-embedded-graphics = "0.8.1"
 tinybmp = "0.6.0"
 
 ```
 
 ## Using the BMP File
-Place the ferris.bmp file inside the src folder. The code is pretty straightforward: load the image as bytes and pass it to the from_slice function of the Bmp. Then, you can use it with the Image.
+
+Place the "ferris.bmp" file inside the src folder. The code is pretty straightforward: load the image as bytes and pass it to the from_slice function of the Bmp. Then, you can use it with the Image.
 
 ```rust
 // the usual boilerplate code goes here...
@@ -65,45 +59,61 @@ cd esp32-projects/oled-bmp
 ```
 
 ## Full code
+
 ```rust
 #![no_std]
 #![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
+)]
 
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use embedded_graphics::image::Image;
-use embedded_graphics::prelude::Point;
-use embedded_graphics::prelude::*;
+use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
-use esp_hal::{clock::CpuClock, time::Rate};
 use esp_println as _;
-use ssd1306::mode::DisplayConfigAsync;
-use ssd1306::{
-    prelude::DisplayRotation, size::DisplaySize128x64, I2CDisplayInterface, Ssd1306Async,
-};
-use tinybmp::Bmp;
+
+// I2C
+use esp_hal::i2c::master::Config as I2cConfig; // for convenience, importing as alias
+use esp_hal::i2c::master::I2c;
+use esp_hal::time::Rate;
+
+// OLED
+use ssd1306::{I2CDisplayInterface, Ssd1306Async, prelude::*};
+
+// Embedded Graphics
+use embedded_graphics::{image::Image, prelude::Point, prelude::*};
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-#[esp_hal_embassy::main]
-async fn main(_spawner: Spawner) {
-    // generator version: 0.3.1
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+esp_bootloader_esp_idf::esp_app_desc!();
+
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
 
-    let i2c_bus = esp_hal::i2c::master::I2c::new(
+    let _ = spawner;
+
+    let i2c_bus = I2c::new(
         peripherals.I2C0,
-        esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
+        // I2cConfig is alias of esp_hal::i2c::master::I2c::Config
+        I2cConfig::default().with_frequency(Rate::from_khz(400)),
     )
     .unwrap()
     .with_scl(peripherals.GPIO18)
@@ -121,7 +131,7 @@ async fn main(_spawner: Spawner) {
     let bmp_data = include_bytes!("../ferris.bmp");
 
     // Parse the BMP file.
-    let bmp = Bmp::from_slice(bmp_data).unwrap();
+    let bmp = tinybmp::Bmp::from_slice(bmp_data).unwrap();
 
     // usual code:
     let image = Image::new(&bmp, Point::new(32, 0));

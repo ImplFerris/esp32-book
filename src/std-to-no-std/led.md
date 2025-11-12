@@ -27,6 +27,7 @@ Adding this necessary import:
 
 ```rust
 use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::time::{Duration, Instant};
 ```
 
 Add the following line inside the main function:

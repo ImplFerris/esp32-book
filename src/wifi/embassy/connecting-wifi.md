@@ -19,23 +19,14 @@ macro_rules! mk_static {
 }
 ```
 
-## Initialization Steps
-
-We initialize the heap with a size of 72 KiB (72 * 1024) using the esp_alloc::heap_allocator! macro.
-
-```rust
-esp_alloc::heap_allocator!(72 * 1024);
-```
+## Initializing the Wi-Fi Controller
 
 Let's initialize Embassy with the usual setup:
+
 ```rust
-let timer0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG1);
-esp_hal_embassy::init(timer0.timer0);
+let timg0 = TimerGroup::new(peripherals.TIMG0);
+esp_rtos::start(timg0.timer0);
 ```
-
-
-
-## Initializing the Wi-Fi Controller
 
 Load the Wi-Fi credentials from environment variables:
 ```rust
@@ -43,43 +34,31 @@ const SSID: &str = env!("SSID");
 const PASSWORD: &str = env!("PASSWORD");
 ```
 
-First, we initialize the TimerGroup required for setting up the Wi-Fi controller. This is almost the same as what we did in the non-async version. However, this time we use the mk_static! macro to initialize wifi_init with a static lifetime. Using static ensures that the variable stays alive for the entire duration of the program.
-
-The reason why we do this is that we will be running the Wi-Fi network stack as an async task ("to process network events"), which requires the wifi_init variable to remain available throughout the program's execution. 
+Next, we initialize the Radio controller with a static lifetime. We use the `mk_static!` macro to promote the controller to `'static` lifetime because the Wi-Fi network stack will run as an asynchronous task that processes network events continuously throughout the program's execution. This requires the `radio_init` variable to remain valid for the entire duration of the program.
 
 ```rust
-let timer1 = TimerGroup::new(peripherals.TIMG0);
-// let _init = esp_wifi::init(
-//     timer1.timer0,
-//     esp_hal::rng::Rng::new(peripherals.RNG),
-//     peripherals.RADIO_CLK,
-// )
-// .unwrap();
-let esp_wifi_ctrl = &*mk_static!(
-    EspWifiController<'static>,
-    esp_wifi::init(
-        timer1.timer0,
-        rng.clone(),
-        peripherals.RADIO_CLK,
-    )
-    .unwrap()
+// let radio_init = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
+let radio_init = &*mk_static!(
+    esp_radio::Controller<'static>,
+    esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller")
 );
 ```
 
-Next, we will call the new_with_mode function with the initialized wifi_init, the Wi-Fi peripheral instance, and the Wi-Fi mode we want to use, which is STA (Station).
+Next, we create the Wi-Fi controller along with its associated network interfaces, then extract the STA interface.
 
 ```rust
-let (controller, interfaces) = esp_wifi::wifi::new(&esp_wifi_ctrl, peripherals.WIFI).unwrap();
+let (wifi_controller, interfaces) =
+        esp_radio::wifi::new(&radio_init, peripherals.WIFI, Default::default())
+            .expect("Failed to initialize Wi-Fi controller");
 let wifi_interface = interfaces.sta;
 ```
 
 ### Initialize the network stack
 
-
 We need a random number for both the TLS configuration and network stack initialization, and both require a u64. However, since rng generates only u32 values, we generate two random numbers and place one in the most significant bits (MSB) and the other in the least significant bits (LSB) using bitwise operation:
 
 ```rust
-let mut rng = Rng::new(peripherals.RNG);
+let rng = Rng::new();
 let net_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
 let tls_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
 ```
@@ -144,38 +123,46 @@ The connection_task function manages the Wi-Fi connection by continuously checki
 3. Finally, we attempt to connect to the Wi-Fi.
 
 ```rust
-
 #[embassy_executor::task]
 async fn connection(mut controller: WifiController<'static>) {
     println!("start connection task");
     println!("Device capabilities: {:?}", controller.capabilities());
     loop {
-        match esp_wifi::wifi::wifi_state() {
-            WifiState::StaConnected => {
+        match esp_radio::wifi::sta_state() {
+            WifiStaState::Connected => {
                 // wait until we're no longer connected
                 controller.wait_for_event(WifiEvent::StaDisconnected).await;
                 Timer::after(Duration::from_millis(5000)).await
             }
             _ => {}
         }
-
         if !matches!(controller.is_started(), Ok(true)) {
-            let client_config = Configuration::Client(ClientConfiguration {
-                ssid: SSID.try_into().unwrap(),
-                password: PASSWORD.try_into().unwrap(),
-                ..Default::default()
-            });
-            controller.set_configuration(&client_config).unwrap();
+            let client_config = ModeConfig::Client(
+                ClientConfig::default()
+                    .with_ssid(SSID.into())
+                    .with_password(PASSWORD.into()),
+            );
+            controller.set_config(&client_config).unwrap();
             println!("Starting wifi");
             controller.start_async().await.unwrap();
             println!("Wifi started!");
+
+            println!("Scan");
+            let scan_config = ScanConfig::default().with_max(10);
+            let result = controller
+                .scan_with_config_async(scan_config)
+                .await
+                .unwrap();
+            for ap in result {
+                println!("{:?}", ap);
+            }
         }
         println!("About to connect...");
 
         match controller.connect_async().await {
             Ok(_) => println!("Wifi connected!"),
             Err(e) => {
-                println!("Failed to connect to wifi: {e:?}");
+                println!("Failed to connect to wifi: {:?}", e);
                 Timer::after(Duration::from_millis(5000)).await
             }
         }

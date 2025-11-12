@@ -22,7 +22,7 @@ First, update your Cargo.toml to include the esp-hal crate. Since it supports mu
 
 ```toml
 [dependencies]
-esp-hal = { version = "=1.0.0-beta.1", features = ["esp32"] }
+esp-hal = { version = "1.0.0", features = ["esp32"] }
 ```
 
 Then, in your main.rs, set up the entry point like this:

@@ -3,8 +3,12 @@ In this section, we'll use the RFID Card Reader (RC522) module to read data from
 
 You've likely encountered these in everyday life; opening your apartment door with a smart key, accessing office doors with a tag, entering smart parking lots, or making payments with a contactless credit card. If you've used a hotel keycard or a toll pass in your car, you've already experienced RFID in action!
 
-<img style="display: block; margin: auto;width:350px;" alt="MIFARE Memory layout" src="./images/rfid-card.tag.png"/>
-
+<div style="text-align: center; margin: 20px 0;">
+  <img style="display: block; margin: auto; " alt="MIFARE Memory layout" src="./images/rfid-card-tag.jpg"/>
+  <div style="margin-top: 10px; font-style: italic; color: #666;">
+    Photo credits to Security Instrument Corp
+  </div>
+</div>
 
 RFID (Radio Frequency Identification) is a technology that uses radio waves to identify and track objects, animals. It wirelessly transmits the stored data from a tag (containing a chip and antenna) to a reader when in range.
  

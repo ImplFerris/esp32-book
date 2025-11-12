@@ -25,7 +25,7 @@ runner = "espflash flash --monitor --chip esp32"
 Now, you can just type:
 
 ```sh
-cargo run
+cargo run --release
 ```
 and your program will be flashed and run on the ESP32.
 

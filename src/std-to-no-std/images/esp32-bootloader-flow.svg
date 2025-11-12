@@ -1,0 +1,42 @@
+<svg viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg"  height="450">
+
+  <rect width="400" height="360" fill="#121212"/>
+
+  <!-- Power On -->
+  <rect x="100" y="20" width="200" height="50" fill="#1e88e5" stroke="#90caf9" stroke-width="2" rx="6"/>
+  <text x="200" y="50" text-anchor="middle" font-family="Roboto, sans-serif" font-size="16" fill="#e3f2fd">Power On</text>
+  
+  <!-- Arrow 1 -->
+  <path d="M 200 70 L 200 100" stroke="#b0bec5" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- ROM Bootloader -->
+  <rect x="100" y="100" width="200" height="50" fill="#f57c00" stroke="#ffb74d" stroke-width="2" rx="6"/>
+  <text x="200" y="130" text-anchor="middle" font-family="Roboto, sans-serif" font-size="16" fill="#fff3e0">ROM Bootloader</text>
+  
+  <!-- Arrow 2 -->
+  <path d="M 200 150 L 200 180" stroke="#b0bec5" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- ESP-IDF Bootloader -->
+  <rect x="50" y="180" width="300" height="80" fill="#00897b" stroke="#4db6ac" stroke-width="2" rx="6"/>
+  <text x="200" y="215" text-anchor="middle" font-family="Roboto, sans-serif" font-size="16" fill="#e0f2f1" font-weight="500">
+    ESP-IDF Bootloader
+  </text>
+  <text x="200" y="235" text-anchor="middle" font-family="Roboto, sans-serif" font-size="12" fill="#b2dfdb">
+    Reads App Image &amp; App Descriptor
+  </text>
+  
+  <!-- Arrow 3 -->
+  <path d="M 200 260 L 200 290" stroke="#b0bec5" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Run Application -->
+  <rect x="75" y="290" width="250" height="50" fill="#43a047" stroke="#81c784" stroke-width="2" rx="6"/>
+  <text x="200" y="320" text-anchor="middle" font-family="Roboto, sans-serif" font-size="16" fill="#e8f5e9">Run Our Code</text>
+  
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#b0bec5" />
+    </marker>
+  </defs>
+</svg>
+

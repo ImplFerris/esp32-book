@@ -37,6 +37,13 @@ The gateway address is often the first address in your Wi-Fi IP range. For insta
 In the wifi.rs module we created in the previous chapter, remove the dhcp config and replace it in the start_wifi function with the following code:
 
 ```rust
+// Additional imports
+use core::str::FromStr;
+use core::net::Ipv4Addr;
+use embassy_net::Ipv4Cidr;
+```
+
+```rust
 //find the `let net_config` part and replace
 let Ok(ip_addr) = Ipv4Cidr::from_str(STATIC_IP) else {
     println!("Invalid STATIC_IP");
@@ -60,16 +67,17 @@ let net_config = embassy_net::Config::ipv4_static(StaticConfigV4 {
 
 ```rust
 pub async fn start_wifi(
-    esp_wifi_ctrl: &'static EspWifiController<'static>,
-    wifi: esp_hal::peripherals::WIFI,
-    mut rng: Rng,
+    radio_init: &'static esp_radio::Controller<'static>,
+    wifi: esp_hal::peripherals::WIFI<'static>,
+    rng: Rng,
     spawner: &Spawner,
 ) -> Stack<'static> {
-    let (controller, interfaces) = esp_wifi::wifi::new(&esp_wifi_ctrl, wifi).unwrap();
+    let (wifi_controller, interfaces) = esp_radio::wifi::new(radio_init, wifi, Default::default())
+        .expect("Failed to initialize Wi-Fi controller");
+
     let wifi_interface = interfaces.sta;
     let net_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
 
-    //find the `let net_config` part and replace
     let Ok(ip_addr) = Ipv4Cidr::from_str(STATIC_IP) else {
         println!("Invalid STATIC_IP");
         loop {}
@@ -83,9 +91,8 @@ pub async fn start_wifi(
     let net_config = embassy_net::Config::ipv4_static(StaticConfigV4 {
         address: ip_addr,
         gateway: Some(gateway),
-        dns_servers: Vec::new(),
+        dns_servers: Default::default(),
     });
-
     // Init network stack
     let (stack, runner) = embassy_net::new(
         wifi_interface,
@@ -94,7 +101,7 @@ pub async fn start_wifi(
         net_seed,
     );
 
-    spawner.spawn(connection_task(controller)).ok();
+    spawner.spawn(connection(wifi_controller)).ok();
     spawner.spawn(net_task(runner)).ok();
 
     wait_for_connection(stack).await;
