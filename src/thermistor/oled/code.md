@@ -202,7 +202,6 @@ async fn main(spawner: Spawner) -> ! {
 
     info!("Embassy initialized!");
 
-    // TODO: Spawn some tasks
     let _ = spawner;
 
     // ADC Setup for thermistor

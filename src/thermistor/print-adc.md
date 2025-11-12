@@ -220,7 +220,6 @@ async fn main(spawner: Spawner) -> ! {
 
     info!("Embassy initialized!");
 
-    // TODO: Spawn some tasks
     let _ = spawner;
 
     let adc_pin = peripherals.GPIO13;
