@@ -39,7 +39,6 @@ ratatui = { version = "0.30.0-alpha.5", default-features = false }
 ```rust
 use static_cell::StaticCell;
 use embedded_hal_bus::spi::ExclusiveDevice;
-use esp_backtrace as _;
 
 // ESP Stuff
 use esp_hal::{
@@ -74,13 +73,9 @@ use ratatui::{layout::{Constraint, Flex, Layout}, widgets::{Block, Paragraph, Wr
 use ratatui::{style::*, Frame, Terminal};
 ```
 
-There are a few configuration variables to be used here
-This code is after the imports
+There are a few configuration variables to be used here.  This code is after the imports
 
 ```rust
-extern crate alloc;
-esp_bootloader_esp_idf::esp_app_desc!();
-
 static SPI_BUFFER: StaticCell<[u8; 512]> = StaticCell::new();
 ```
 
@@ -197,67 +192,76 @@ loop {
     holding buffers for the duration of a data transfer."
 )]
 
-use static_cell::StaticCell;
-use embedded_hal_bus::spi::ExclusiveDevice;
-use esp_backtrace as _;
+use esp_hal::clock::CpuClock;
+use esp_hal::main;
+use esp_println as _;
 
-// ESP Stuff
-use esp_hal::{
-    delay::Delay,
-    spi::{
-        master::{
-            Config as SpiConfig,
-            Spi
-        },
-        Mode as SpiMode,
-    },
-    time::Rate,
-    gpio::{
-        Level,
-        Output,
-        OutputConfig
-    },
-    clock::CpuClock,
-    main
-};
-
-// Embedded graphics stuff
+// Embedded Graphics related
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::*;
 
-// TFT Screen stuff
-use mipidsi::{Builder, models::ILI9342CRgb565, interface::SpiInterface, options::{Orientation, Rotation}};
+// ESP32 SPI + Display Driver bridge
+use embedded_hal_bus::spi::ExclusiveDevice;
+use esp_hal::delay::Delay;
+use esp_hal::spi::Mode as SpiMode;
+use esp_hal::spi::master::Config as SpiConfig;
+use esp_hal::spi::master::Spi;
+use esp_hal::time::Rate; // For specifying SPI frequency
 
-// Mousefood stuff
+use static_cell::StaticCell;
+
+// For TFT Screen
+use mipidsi::{
+    Builder,
+    interface::SpiInterface,
+    models::ILI9342CRgb565,
+    options::{Orientation, Rotation},
+};
+
+// For managing GPIO state
+use esp_hal::gpio::{Level, Output, OutputConfig};
+
+// For ratatui
 use mousefood::{EmbeddedBackend, EmbeddedBackendConfig};
-use ratatui::{layout::{Constraint, Flex, Layout}, widgets::{Block, Paragraph, Wrap}};
-use ratatui::{style::*, Frame, Terminal};
+use ratatui::layout::{Constraint, Flex, Layout};
+use ratatui::widgets::{Block, Paragraph, Wrap};
+use ratatui::{Frame, Terminal, style::*};
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
 
 extern crate alloc;
+
+// This creates a default app-descriptor required by the esp-idf bootloader.
+// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
 
 static SPI_BUFFER: StaticCell<[u8; 512]> = StaticCell::new();
 
 #[main]
 fn main() -> ! {
-    esp_println::logger::init_logger_from_env();
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
     esp_alloc::heap_allocator!(#[unsafe(link_section = ".dram2_uninit")] size: 98767);
 
+    // Initialize SPI
     let spi = Spi::new(
         peripherals.SPI2,
         SpiConfig::default()
             .with_frequency(Rate::from_mhz(60))
-            .with_mode(SpiMode::_0)
+            .with_mode(SpiMode::_0),
     )
-        .unwrap()
-        .with_sck(peripherals.GPIO18)
-        .with_mosi(peripherals.GPIO23);
-
-    let cs = Output::new(peripherals.GPIO5, Level::Low, OutputConfig::default());
+    .unwrap()
+    //CLK
+    .with_sck(peripherals.GPIO18)
+    //DIN
+    .with_mosi(peripherals.GPIO23);
+    let cs = Output::new(peripherals.GPIO15, Level::Low, OutputConfig::default());
     let dc = Output::new(peripherals.GPIO2, Level::Low, OutputConfig::default());
     let reset = Output::new(peripherals.GPIO4, Level::Low, OutputConfig::default());
 
@@ -266,26 +270,22 @@ fn main() -> ! {
     let spi_dev = ExclusiveDevice::new_no_delay(spi, cs).unwrap();
     let interface = SpiInterface::new(spi_dev, dc, buffer);
 
-    let mut display = Builder::new(
-        ILI9342CRgb565,
-        interface
-    )
+    let mut display = Builder::new(ILI9342CRgb565, interface)
         .reset_pin(reset)
         .init(&mut Delay::new())
         .unwrap();
 
     // CRITICAL: Set orientation BEFORE clearing and creating backend
-    display.set_orientation(
-        Orientation::default().rotate(Rotation::Deg270)
-    ).unwrap();
-    
+    display
+        .set_orientation(Orientation::default().rotate(Rotation::Deg270))
+        .unwrap();
+
     // Clear with the new orientation
     display.clear(Rgb565::BLACK).unwrap();
 
-    // Now create the backend with the properly oriented display
     let backend = EmbeddedBackend::new(&mut display, EmbeddedBackendConfig::default());
-    let mut terminal = Terminal::new(backend).unwrap();
 
+    let mut terminal = Terminal::new(backend).unwrap();
     loop {
         terminal.draw(draw).unwrap();
     }
@@ -293,9 +293,8 @@ fn main() -> ! {
 
 fn draw(frame: &mut Frame) {
     let outer_block = Block::bordered()
-        .title_style(Style::new().green())
-        .title("ESP32 Dashboard");
-
+        .border_style(Style::new().green())
+        .title(" ESP32 Dashboard ");
     frame.render_widget(outer_block, frame.area());
 
     let vertical_layout = Layout::vertical([Constraint::Length(3)])
@@ -313,12 +312,10 @@ fn draw(frame: &mut Frame) {
 
     let bordered_block = Block::bordered()
         .border_style(Style::new().yellow())
-        .title("impl rust");
+        .title(" impl Rust ");
 
     frame.render_widget(paragraph.block(bordered_block), horizontal_layout[0]);
-
 }
-
 ```
 
 ## Clone the existing project
@@ -327,7 +324,7 @@ You can clone (or refer) project I created and navigate to the `hello-rat-2` fol
 
 ```bash
 git clone https://github.com/ImplFerris/esp32-projects
-cd hello-rat-2/
+cd esp32-projects/hello-rat-2/
 ```
 
 ## Flash the program
