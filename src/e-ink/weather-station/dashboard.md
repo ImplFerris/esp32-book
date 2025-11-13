@@ -3,6 +3,7 @@
 In this chapter, we'll build the main logic. The idea is to update the dashboard every so often;say, every 10 minutes. To do that, we'll fetch the latest weather data by calling the access_website function from the weather module, and then update each part of the dashboard with the new info.
 
 ## Type aliases
+
 We'll create type aliases for the SPI device and the e-paper display to make the code easier to read and work with.
 
 ```rust
@@ -38,23 +39,19 @@ Note: The following functions which take self as the first parameter should also
 
 ## Dashboard Startup
 
-This will be the starting function, which we'll call next in the main.rs file. It will accept SHA and RSA peripherals as input, which are needed to set up TLS. We will also instantiate the WeatherApi.
+This will be the starting function, which we'll call next in the main.rs file. We will also instantiate the WeatherApi.
 
 I rotated the display 90 degrees. Technically, you don't need to do this since the display we're using is 200x200 pixels. But if you're using a rectangular display, it makes more sense to rotate it.
 
 In a loop, every 10 minutes, we'll call the refresh function which will fetch the latest data and update the display.
 
 ```rust
-pub async fn start(&mut self, sha: SHA, rsa: RSA) {
+pub async fn start(&mut self, tls_seed: u64) {
     self.display.set_rotation(DisplayRotation::Rotate90);
 
-    let tls = Tls::new(sha)
-        .expect("TLS::new with peripherals.SHA failed")
-        .with_hardware_rsa(rsa);
-
-    let api = WeatherApi::new(self.wifi);
+    let api = WeatherApi::new(self.wifi, tls_seed);
     loop {
-        self.refresh(&api, tls.reference()).await;
+        self.refresh(&api).await;
 
         Timer::after(Duration::from_secs(60 * 10)).await;
     }
@@ -68,9 +65,9 @@ First, we get the latest weather data by calling the `access_website` function f
 Next, we draw the updated weather info - first the date, then the weather icon and temperature. After that, we add humidity, wind speed, and finally the signature at the bottom (just a small "implRust" text). Once everything is drawn, we update the display with the new frame, wait for 5 seconds, and then put it to sleep.
 
 ```rust
-pub async fn refresh(&mut self, api: &WeatherApi, tls_reference: TlsReference<'_>) {
+pub async fn refresh(&mut self, api: &WeatherApi) {
     info!("Getting weather data");
-    let weather_data = api.access_website(tls_reference).await;
+    let weather_data = api.access_website().await;
     info!("Got weather data");
 
     self.epd.wake_up(&mut self.spi_dev, &mut Delay).unwrap();

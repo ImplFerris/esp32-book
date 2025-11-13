@@ -164,7 +164,7 @@ async fn main(spawner: Spawner) -> ! {
     .with_mosi(peripherals.GPIO23);
 
     let cs = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
-    let mut spi_dev = ExclusiveDevice::new(spi_bus, cs, Delay);
+    let mut spi_dev = ExclusiveDevice::new(spi_bus, cs, Delay).unwrap();
 
     // Initialize Display
     let busy_in = Input::new(

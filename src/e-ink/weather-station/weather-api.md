@@ -25,24 +25,7 @@ pub struct WeatherData {
 }
 ```
 Here, I'm only deserializing the fields we need and ignoring the rest of the JSON data.
-
-## TLS Certificate
-
-The OpenWeatherMap website does not support TLS 1.3. If it did, this task would have been much simpler;we could have just used the embedded-tls crate, which supports only TLS 1.3. embedded-tls also provides a TLSVerify::None option, allowing us to skip SSL certificate verification. Unfortunately, since we're limited to TLS 1.2, we have to use esp-mbedtls, which requires certificate verification. 
-
-No worries--this is a great opportunity to introduce an alternative approach as well.
-
-In contrast to standard environments, where the operating system provides a built-in set of trusted certificate chains (and the browser or HTTP client handles verification automatically), our embedded environment lacks this support. Therefore, we must manually obtain the TLS certificate from the website and store it in a file, so our program can use it for verification.
-
-You can run this command and store the file in the `src` folder.
-
-```sh
-openssl s_client -showcerts -connect openweathermap.org:443 </dev/null 2>/dev/null | \
-                   awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' > ca_cert.pem
-```
-
-Alternatively, you can download it from my project repository [here](https://github.com/ImplFerris/esp32-epaper-weather/blob/main/src/ca_cert.pem), though this isn't recommended as the file may be outdated.
-
+ 
 ## Weather API
 
 Let's create a wrapper struct to handle API requests. While a simple function could work, it would require passing the URL and Wi-Fi stack every time. By using a struct, we can instantiate it once and call the access_website method whenever we need the latest weather data.
@@ -51,6 +34,7 @@ Let's create a wrapper struct to handle API requests. While a simple function co
 pub struct WeatherApi {
     wifi: Stack<'static>,
     url: String<120>,
+    tls_seed: u64,
 }
 ```
 
@@ -59,55 +43,55 @@ In the new function, we'll construct the API URL by appending the API key and st
 NOTE: If you observed, I have used "London" as the city name. You can replace it with your city name along with the country code. Refer to the doc for more details and adjust accordingly.
 
 ```rust
-pub fn new(wifi: Stack<'static>) -> Self {
-        let mut url = String::new();
-        url.push_str(
-            "https://api.openweathermap.org/data/2.5/weather?q=London&units=metric&appid=",
-        )
-        .unwrap();
-        url.push_str(API_KEY).unwrap();
-        Self { wifi, url }
+pub fn new(wifi: Stack<'static>, tls_seed: u64) -> Self {
+    let mut url = String::new();
+    url.push_str(
+        "https://api.openweathermap.org/data/2.5/weather?q=London&units=metric&appid=",
+    )
+    .unwrap();
+    url.push_str(API_KEY).unwrap();
+    Self {
+        wifi,
+        url,
+        tls_seed,
     }
+}
 ```
 
 ## Sending API Request
 
-Next, we'll instantiate the DNS socket and TCP client. When configuring TLS, we'll specify the TLS 1.2 protocol and set up the certificate using the CA chain. The certificate content will be loaded from the "ca_cert.pem" file we created earlier.
-
-With the basic setup in place, we'll pass the TCP client, DNS socket, and TLS configuration to the HttpClient, and use it to send a request to the API URL. Once we receive the response, we'll deserialize the JSON payload into a WeatherData struct using serde_json_core.
+Next, we'll instantiate the DNS socket and TCP client. With the basic setup in place, we'll pass the TCP client, DNS socket, and TLS configuration to the HttpClient, and use it to send a request to the API URL. Once we receive the response, we'll deserialize the JSON payload into a WeatherData struct using serde_json_core.
 
 ```rust
-pub async fn access_website(&self, tls_reference: TlsReference<'_>) -> WeatherData {
-        let dns = DnsSocket::new(self.wifi);
-        let tcp_state = TcpClientState::<1, 4096, 4096>::new();
-        let tcp = TcpClient::new(self.wifi, &tcp_state);
+pub async fn access_website(&self) -> WeatherData {
+    let mut rx_buffer = [0; 4096 * 2];
+    let mut tx_buffer = [0; 4096 * 2];
 
-        let tls_config = TlsConfig::new(
-            reqwless::TlsVersion::Tls1_2,
-            reqwless::Certificates {
-                ca_chain: reqwless::X509::pem(
-                    concat!(include_str!("./ca_cert.pem"), "\0").as_bytes(),
-                )
-                .ok(),
-                ..Default::default()
-            },
-            tls_reference,
-        );
+    let tls_config = TlsConfig::new(
+        self.tls_seed,
+        &mut rx_buffer,
+        &mut tx_buffer,
+        reqwless::client::TlsVerify::None,
+    );
 
-        let mut client = HttpClient::new_with_tls(&tcp, &dns, tls_config);
-        let mut buffer = [0u8; 4096];
-        let mut http_req = client
-            .request(reqwless::request::Method::GET, &self.url)
-            .await
-            .unwrap();
-        let response = http_req.send(&mut buffer).await.unwrap();
+    let dns = DnsSocket::new(self.wifi);
+    let tcp_state = TcpClientState::<1, 4096, 4096>::new();
+    let tcp = TcpClient::new(self.wifi, &tcp_state);
 
-        info!("Got response");
-        let res = response.body().read_to_end().await.unwrap();
+    let mut client = HttpClient::new_with_tls(&tcp, &dns, tls_config);
+    let mut buffer = [0u8; 4096];
+    let mut http_req = client
+        .request(reqwless::request::Method::GET, &self.url)
+        .await
+        .unwrap();
+    let response = http_req.send(&mut buffer).await.unwrap();
 
-        let (data, _): (WeatherData, _) = serde_json_core::de::from_slice(res).unwrap();
-        data
-    }
+    info!("Got response");
+    let res = response.body().read_to_end().await.unwrap();
+
+    let (data, _): (WeatherData, _) = serde_json_core::de::from_slice(res).unwrap();
+    data
+}
 ```
 
 ## The rest of the struct
