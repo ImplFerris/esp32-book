@@ -2,48 +2,43 @@
 
 In the `main` function, we will perform the usual setup steps like initializing the Wi-Fi stack, SPI device, and creating an instance of the `Dashboard` we defined earlier.
 
-One important thing to note is that we allocate memory for the `dram2` using `esp_alloc::heap_allocator!(#[link_section = ".dram2_uninit"] size: 64000);`. This is crucial because the mbedtls requires additional heap memory. Without this allocation, you will encounter memory allocation failures when sending the API request.
-
 ```rust
-#[esp_hal_embassy::main]
-async fn main(spawner: Spawner) {
-    // generator version: 0.3.1
+#[esp_rtos::main]
+async fn main(spawner: Spawner) -> ! {
+    // generator version: 1.0.0
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    esp_alloc::heap_allocator!(size: 80 * 1024);
-    esp_alloc::heap_allocator!(#[link_section = ".dram2_uninit"] size: 64000);
+    esp_alloc::heap_allocator!(#[unsafe(link_section = ".dram2_uninit")] size: 98767);
 
-    let timer0 = TimerGroup::new(peripherals.TIMG1);
-    esp_hal_embassy::init(timer0.timer0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_rtos::start(timg0.timer0);
 
     info!("Embassy initialized!");
 
-    let timer1 = TimerGroup::new(peripherals.TIMG0);
-    let rng = Rng::new(peripherals.RNG);
-    let esp_wifi_ctrl = &*lib::mk_static!(
-        EspWifiController<'static>,
-        esp_wifi::init(timer1.timer0, rng.clone(), peripherals.RADIO_CLK,).unwrap()
+    let radio_init = &*lib::mk_static!(
+        esp_radio::Controller<'static>,
+        esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller")
     );
+    let rng = Rng::new();
 
-    // Configure and Start Wi-Fi tasks
-    let stack = lib::wifi::start_wifi(esp_wifi_ctrl, peripherals.WIFI, rng, &spawner).await;
+    let stack = lib::wifi::start_wifi(radio_init, peripherals.WIFI, rng, &spawner).await;
 
-    // Initialize SPI
-    let spi = Spi::new(
+    let spi_bus = Spi::new(
         peripherals.SPI2,
-        SpiConfig::default()
+        spi::master::Config::default()
             .with_frequency(Rate::from_mhz(4))
-            .with_mode(SpiMode::_0),
+            .with_mode(spi::Mode::_0),
     )
     .unwrap()
     //CLK
     .with_sck(peripherals.GPIO18)
     //DIN
     .with_mosi(peripherals.GPIO23);
+
     let cs = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
-    let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay);
+    let mut spi_dev = ExclusiveDevice::new(spi_bus, cs, Delay).unwrap();
 
     // Initialize Display
     let busy_in = Input::new(
@@ -54,13 +49,20 @@ async fn main(spawner: Spawner) {
     let reset = Output::new(peripherals.GPIO16, Level::Low, OutputConfig::default());
     let epd = Epd1in54::new(&mut spi_dev, busy_in, dc, reset, &mut Delay, None).unwrap();
 
+    let tls_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
+
     let mut app = Dashboard::new(stack, epd, spi_dev);
-    app.start(peripherals.SHA, peripherals.RSA).await;
+    app.start(tls_seed).await;
+
+    loop {
+        Timer::after(Duration::from_secs(1)).await;
+    }
 }
 ```
 
 
 ## Clone the existing project
+
 You can also clone (or refer) project I created and navigate to the `wifi-webfetch` folder.
 
 ```sh

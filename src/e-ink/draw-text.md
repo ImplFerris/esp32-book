@@ -22,7 +22,7 @@ Just save it by pressing "s" in the keyboard.
 epd-waveshare = { features = [
   "graphics",
 ], git = "https://github.com/ImplFerris/epd-waveshare", branch = "1in54_v2_fix" }
-embedded-hal-bus = { version = "0.1" }
+embedded-hal-bus = { version = "0.3" }
 embedded-graphics = "0.8.1"
 ```
 
@@ -47,7 +47,7 @@ let spi = Spi::new(
 //DIN
 .with_mosi(peripherals.GPIO23);
 let cs = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
-let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay);
+let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay).unwrap();
 ```
 
 ## Initialize the e-paper display
@@ -192,7 +192,7 @@ async fn main(spawner: Spawner) -> ! {
     .with_mosi(peripherals.GPIO23);
 
     let cs = Output::new(peripherals.GPIO33, Level::Low, OutputConfig::default());
-    let mut spi_dev = ExclusiveDevice::new(spi_bus, cs, Delay);
+    let mut spi_dev = ExclusiveDevice::new(spi_bus, cs, Delay).unwrap();
 
     // Initialize Display
     let busy_in = Input::new(
