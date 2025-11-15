@@ -38,7 +38,7 @@ hstimer0
     .configure(timer::config::Config {
         duty: timer::config::Duty::Duty12Bit,
         clock_source: timer::HSClockSource::APBClk,
-        frequency: Rate::from_khz(50),
+        frequency: Rate::from_hz(50),
     })
     .unwrap();
 
@@ -143,7 +143,7 @@ fn main() -> ! {
         .configure(timer::config::Config {
             duty: timer::config::Duty::Duty12Bit,
             clock_source: timer::HSClockSource::APBClk,
-            frequency: Rate::from_khz(50),
+            frequency: Rate::from_hz(50),
         })
         .unwrap();
 
