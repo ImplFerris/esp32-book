@@ -42,7 +42,7 @@ hstimer0
     })
     .unwrap();
 
-let mut channel0 = ledc.channel(channel::Number::Channel0, &mut servo);
+let mut channel0 = ledc.channel(channel::Number::Channel0, servo.reborrow());
 channel0
     .configure(channel::config::Config {
         timer: &hstimer0,
