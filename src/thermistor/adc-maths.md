@@ -1,5 +1,8 @@
 # Deriving Resistance from ADC Value
 
+> [!CAUTION]
+> The mathematical derivation I presented in this section is currently under review. A user has raised a [GitHub issue](https://github.com/ImplFerris/esp32-book/issues/16) questioning the accuracy of this approach. It appears my initial research and derivation is incorrect. I have yet to research further and validate these formulas and will update this section once the analysis is complete. Please do not rely on this formula until then.
+
 You can skip this chapter if you'd like. It simply explains the math behind deriving the resistance from the ADC value.  We combine the voltage divider formula with ADC Resolution formula to find the Resistance(R2). 
 
 <span style="color:orange">Note:</span> It is assumed here that one side of the thermistor is connected to Ground (GND). I noticed that some online articles do the opposite, connecting one side of the thermistor to the power supply instead, which initially caused me some confusion.  When one side of the thermistor is connected to Ground and the other side to the ADC pin, it becomes R2 in the voltage divider.
