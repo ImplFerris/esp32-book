@@ -94,7 +94,7 @@
 - [Thermistor](./thermistor/index.md)
     - [NTC and Voltage Divider](./thermistor/voltage-divider.md)
     - [ADC](./thermistor/adc.md)
-        - [Maths](./thermistor/adc-maths.md)
+        <!-- - [Maths](./thermistor/adc-maths.md) -->
         - [ADC Non-Linearity](./thermistor/esp32-non-linear.md)
     - [Non-Linear](./thermistor/non-linear.md)
         - [B Equation](./thermistor/b-equation.md)
