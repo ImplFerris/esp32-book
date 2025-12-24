@@ -40,3 +40,12 @@ Here are some useful Matrix channels related to topics covered in this book:
 You can create a Matrix account and join these channels to get help from experienced developers.
 
 You can find more community chat rooms in the [Awesome Embedded Rust - Community Chat Rooms section](https://github.com/rust-embedded/awesome-embedded-rust?tab=readme-ov-file#community-chat-rooms).
+
+
+## 4. Discord
+
+There is an unofficial Discord community for Embedded Rust where you can ask questions, discuss topics, share your experiences, and showcase your projects. It is especially useful for learners and general discussion.
+
+Keep in mind that most HAL and embedded ecosystem maintainers are more active on Matrix. Still, this Discord server can be a good place to learn and interact with others.
+
+Join here: [https://discord.gg/NHenanPUuG](https://discord.gg/NHenanPUuG)
