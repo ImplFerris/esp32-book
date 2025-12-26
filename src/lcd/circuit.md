@@ -1,6 +1,6 @@
 # Circuit
 
-## Connecting LCD Display (LCD1602) to the Raspberry Pi Pico
+## Connecting LCD Display (LCD1602) to the ESP32
 
 We will be using parallel interface in 4bit mode. Remaining Pins like D0 to D3 won't be connected.
 
