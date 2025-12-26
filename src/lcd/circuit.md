@@ -63,4 +63,3 @@ We will be using parallel interface in 4bit mode. Remaining Pins like D0 to D3 w
 <br/>
 <img style="display: block; margin: auto;" alt="lcd1602" src="./images/connecting-esp32-with-lcd-display-lcd1602.png"/>
 
-If you've seen the circuit in the Pico book, you’ll notice how many pins are required for the parallel interface, making the wiring congested. Using I2C variant simplifies the setup and makes it much easier.
