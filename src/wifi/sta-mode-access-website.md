@@ -269,7 +269,7 @@ Let's send an HTTP request with GET method to the website "www.mobile-j.de". Thi
 println!("Making HTTP request");
 socket.work();
 
-let remote_addr = IpAddress::v4(142, 250, 185, 115);
+let remote_addr = IpAddress::v4(192, 178, 187, 121);
 socket.open(remote_addr, 80).unwrap();
 socket
     .write(b"GET / HTTP/1.0\r\nHost: www.mobile-j.de\r\n\r\n")
@@ -509,7 +509,7 @@ fn http_loop(
         println!("Making HTTP request");
         socket.work();
 
-        let remote_addr = IpAddress::v4(142, 250, 185, 115);
+        let remote_addr = IpAddress::v4(192, 178, 187, 121);
         socket.open(remote_addr, 80).unwrap();
         socket
             .write(b"GET / HTTP/1.0\r\nHost: www.mobile-j.de\r\n\r\n")
