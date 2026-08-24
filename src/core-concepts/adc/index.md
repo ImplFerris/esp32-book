@@ -2,83 +2,64 @@
 
 # ADC (Analog to Digital Converter)
 
-An Analog-to-Digital Converter (ADC) is a device used to convert analog signals (continuous signals like sound, light, or temperature) into digital signals (discrete values, typically represented as 1s and 0s). This conversion is necessary for digital systems like microcontrollers (e.g., Raspberry Pi, Arduino) to interact with the real world. For example, sensors that measure temperature or sound produce analog signals, which need to be converted into digital format for processing by digital devices.
+When working with embedded systems, you often need to interact with the physical world through sensors. Sensors and their associated circuits can convert physical quantities such as temperature, pressure, light, sound, and acceleration into electrical signals, often voltages. These signals can vary continuously, while the microcontroller processes digital data. So, how do we bridge the gap between the analog world and the digital world?
 
-<img style="display: block; margin: auto;" alt="ADC" src="../images/adc.jpg"/>
+> [!TIP]
+> **Analog vs Digital:** If you are not sure what analog and digital mean, SparkFun has a nice article explaining the difference. You can check it out [here](https://learn.sparkfun.com/tutorials/analog-vs-digital/all).
+
+One approach is to use an Analog-to-Digital Converter (ADC). An ADC converts an analog voltage into a digital number.
+
+<div class="image-with-caption" style="text-align:center;">
+    <img src="../images/adc-illustration.jpg" alt="ADC" style="height:auto; display:block; margin:auto;"/>
+    <div class="caption" style="font-size:0.9em; color:#555; margin-top:6px;">ADC Illustration</div>
+</div>
+
+For example, suppose a sensor produces a voltage between 0 V and 3.3 V. An ADC can convert that voltage into a number that our Rust program can read.  Later, we will use the ADC with sensors such as an LDR to measure ambient light and a thermistor to measure temperature.
+
+## How Does an ADC Measure Voltage?
+
+To convert an analog voltage into a digital number, an ADC needs a known voltage as a reference. This is called the **reference voltage**, or `Vref`.
+
+The ADC compares the input voltage with this reference and determines where the input voltage falls within the reference range. It then produces a digital number that represents the input voltage.
+
+Different types of ADCs use different methods to do this conversion. The details depend on the type of ADC and are beyond the scope of this book.
+
+> [!TIP]
+> If you want to learn more about how comparators use the reference voltage (Vref) to help an ADC determine the input voltage, check out this video: [Comparators: The Building Blocks of Analog to Digital Converters (ADC)](https://youtu.be/CQapmDx5oV0)
+
+For example, suppose the reference voltage is `3.3 V`, and the input voltage is `1.5 V`. The input voltage is approximately 45% of the reference voltage:
+
+\\[
+\frac{1.5}{3.3} \approx 0.455
+\\]
+
+So, in an ideal ADC, this input would correspond to approximately 45% of the available digital range.
+
+There is one more important detail we need to consider when working with the ESP32. We will cover it later in this chapter. For now, this gives us a simplified idea of how an ADC works.
 
 ## ADC Resolution
-The resolution of an ADC refers to how precisely the ADC can measure an analog signal. It is expressed in bits, and the higher the resolution, the more precise the measurements.
 
-- 8-bit ADC produces digital values between 0 and 255.
-- 10-bit ADC produces digital values between 0 and 1023.
-- 12-bit ADC produces digital values between 0 and 4095.
+The ADC does not give us a percentage of the input voltage. Instead, it gives us a digital number within a fixed range.  The size of this range depends on something called **ADC resolution**. It is expressed in bits.
 
-The resolution of the ADC can be expressed as the following formula:
-\\[
-\text{Resolution} = \frac{\text{Vref}}{2^{\text{bits}} - 1}
-\\]
+For example, an 8-bit ADC has 256 (i.e., `2^8`) possible digital values. These values range from 0 to 255.
 
-## ESP32
-The ESP32 has 12-bit Analogue to Digital Converter (ADC). So, it provides values ranging from 0 to 4095 (4096 possible values)
+Similarly:
 
-\\[
-\text{Resolution} = \frac{3.3V}{2^{12} - 1} = \frac{3.3V}{4095} \approx 0.000805 \text{V} \approx 0.8 \text{mV}
-\\]
+* A 10-bit ADC produces values from 0 to 1023 (1024 possible values).
+* A 12-bit ADC produces values from 0 to 4095 (4096 possible values).
 
-## Pins
-//TODO: details of ESP32 ADC Pins
+The original ESP32 has 12-bit ADCs. You can also configure the ADC to use fewer bits.
 
-## ADC Value and LDR Resistance in a Voltage Divider
-In a voltage divider with an LDR and a fixed resistor, the output voltage \\( V_{\text{out}} \\) is given by:
+## Quantization
 
-\\[
-V_{\text{out}} = V_{\text{in}} \times \frac{R_{\text{LDR}}}{R_{\text{LDR}} + R_{\text{fixed}}}
-\\]
+The input voltage can change continuously, but the ADC can only produce a fixed number of digital values. This means that nearby input voltages may be represented by the same digital value.
 
-It is same formula as explained in the previous chapter, just replaced the \\({R_2}\\) with \\({R_{\text{LDR}}}\\) and \\({R_1}\\) with \\({R_{\text{fixed}}}\\)
+This process of mapping a continuous voltage to one of the available digital values is called **quantization**.
 
-- **Bright light** (low LDR resistance): \\( V_{\text{out}} \\) decreases, resulting in a lower ADC value.
-- **Dim light** (high LDR resistance): \\( V_{\text{out}} \\) increases, leading to a higher ADC value.
+For example, suppose a 12-bit ADC has an input range of `0 V` to `3.3 V`. It can produce 4096 different values, from 0 to 4095.
 
-## Example ADC value calculation:
+Now imagine two input voltages that are very close to each other, such as `1.500 V` and `1.501 V`. The ADC may produce the same digital value for both because there are only a finite number of values available to represent the entire voltage range.
 
-**Bright light**:
+This means that the digital value is an approximation of the actual input voltage. The difference between the actual voltage and the voltage represented by the digital value is called **quantization error**.
 
- Let's say the Resistence value of LDR is \\(1k\Omega\\) in the bright light (and we have \\(10k\Omega\\) fixed resistor).
-  
-\\[
-V_{\text{out}} = 3.3V \times \frac{1k\Omega}{1k\Omega + 10k\Omega} \approx 0.3V
-\\]
-
-The ADC value is calculated as:
-\\[
-\text{ADC value} = \left( \frac{V_{\text{out}}}{V_{\text{ref}}} \right) \times (2^{12} - 1) \approx \left( \frac{0.3}{3.3} \right) \times 4095 \approx 372
-\\]
-
-**Darkness**:
-
-  Let's say the Resistence value of LDR is \\(140k\Omega \\) in very low light.
-  
-\\[
-V_{\text{out}} = 3.3V \times \frac{140k\Omega}{140k\Omega + 10k\Omega} \approx 3.08V
-\\]
-
-The ADC value is calculated as:
-\\[
-\text{ADC value} = \left( \frac{V_{\text{out}}}{V_{\text{ref}}} \right) \times (2^{12} - 1) \approx \left( \frac{3.08}{3.3} \right) \times 4095 = 3822
-\\]
-
-### **Converting ADC value back to voltage**:
-
-Now, if we want to convert the ADC value back to the input voltage, we can multiply the ADC value by the resolution (0.8mV).
-
-For example, let's take an ADC value of 3822:
-
-\\[
-\text{Voltage} = 3822 \times 0.8mV = 3057.6mV \approx 3.06V
-\\]
-
-
-## Reference
-- [What is Analog to Digital Converter & Its Working](https://www.elprocus.com/analog-to-digital-converter/)
-
+A higher-resolution ADC has more available values, so it can represent the input voltage more closely and reduce the quantization error.
