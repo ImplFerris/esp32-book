@@ -31,7 +31,7 @@ For example, suppose the reference voltage is `3.3 V`, and the input voltage is 
 
 There is one more important detail we need to consider when working with the ESP32. We will cover it later in this chapter. For now, this gives us a simplified idea of how an ADC works.
 
-## ADC Resolution
+## How Are Values Represented?
 
 The ADC does not give us a percentage of the input voltage. Instead, it gives us a digital number within a fixed range.  The size of this range depends on something called **ADC resolution**. It is expressed in bits.
 
@@ -44,7 +44,7 @@ Similarly:
 
 The original ESP32 has 12-bit ADCs. You can also configure the ADC to use fewer bits.
 
-## Quantization
+## How Does an ADC Represent Different Voltages?
 
 The input voltage can change continuously, but the ADC can only produce a fixed number of digital values. This means that nearby input voltages may be represented by the same digital value.
 
