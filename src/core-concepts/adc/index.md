@@ -27,13 +27,7 @@ Different types of ADCs use different methods to do this conversion. The details
 > [!TIP]
 > If you want to learn more about how comparators use the reference voltage (Vref) to help an ADC determine the input voltage, check out this video: [Comparators: The Building Blocks of Analog to Digital Converters (ADC)](https://youtu.be/CQapmDx5oV0)
 
-For example, suppose the reference voltage is `3.3 V`, and the input voltage is `1.5 V`. The input voltage is approximately 45% of the reference voltage:
-
-\\[
-\frac{1.5}{3.3} \approx 0.455
-\\]
-
-So, in an ideal ADC, this input would correspond to approximately 45% of the available digital range.
+For example, suppose the reference voltage is `3.3 V`, and the input voltage is `1.5 V`. The input voltage is approximately 45% of the reference voltage.
 
 There is one more important detail we need to consider when working with the ESP32. We will cover it later in this chapter. For now, this gives us a simplified idea of how an ADC works.
 
