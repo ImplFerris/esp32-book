@@ -6,7 +6,8 @@ Thermistors have a non-linear relationship between resistance and temperature, m
 
 <img style="display: block; margin: auto;" alt="pico2" src="./images/thermistor-non-linearity.jpg"/>
 
-The B equation is simple to calculate using the B value, which you can easily find online. On the other hand, the Steinhart equation uses A, B, and C coefficients. Some manufacturers provide these coefficients, but you'll still need to calibrate and find them yourself since the whole reason for using the Steinhart equation is to get accurate temperature readings.
+The B equation is simple to calculate using the B value, which you can find in the thermistor's datasheet or from the manufacturer. On the other hand, the Steinhart-Hart equation uses A, B, and C coefficients. Some manufacturers provide these coefficients for their thermistors. When appropriate coefficients are available, the Steinhart-Hart equation can provide more accurate temperature calculations over a wider temperature range.
+
 
 In the next chapters, we will see in detail how to use B equation and Steinhart-Hart equation to determine the temperature. 
 

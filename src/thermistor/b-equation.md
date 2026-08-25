@@ -14,7 +14,7 @@ Where:
 - \\( R_0 \\) is the **resistance** at the reference temperature \\( T_0 \\) (often 10kΩ).
 - B is the **B-value** of the thermistor.
 
-The B value is a constant usually provided by the manufacturers, changes based on the material of a thermistor. It describes the gradient of the resistive curve over a specific temperature range between two points(i.e \\( T_0 \\) vs \\( R_0 \\) and T vs R). You can even rewrite the above formula to get B value yourself by calibrating the resistance at two temperatures.
+The B value is a constant usually provided by the manufacturer. It depends on the material and construction of the thermistor and describes how its resistance changes with temperature over a specified temperature range. You can also calculate the B value yourself by measuring the thermistor's resistance at two known temperatures.
 
 **Example Calculation:**
 

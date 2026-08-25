@@ -1,6 +1,11 @@
 {{#title ESP32 Steinhart-Hart Equation Temperature Calculation in Rust}}
 
 # Steinhart Hart equation
+
+> [!TIP]
+>
+> We won't use this equation in our exercise because it takes more effort to find the A, B, and C constants. The B equation provides sufficient accuracy for our purposes, so feel free to skip this chapter if you prefer.
+
 The Steinhart-Hart equation provides a more accurate temperature-resistance relationship over a wide temperature range. 
 \\[
 \frac{1}{T} = A + B \ln R + C (\ln R)^3
@@ -11,16 +16,12 @@ Where:
 - R is the resistance at temperature T in **Ohms**.
 - A, B, and C are constants specific to the thermistor's material, often provided by the manufacturer. For better accuracy, you may need to calibrate and determine these values yourself. Some datasheets provide resistance values at various temperatures, which can also be used to calculate this.
 
-**Note**:
-
-We won't use this equation in our exercise because it takes more effort to find the A, B, and C constants. The B equation provides sufficient accuracy for our purposes, so feel free to skip this chapter if you prefer.
-
-
 ### Calibration
-To determine the accurate values for A, B, and C, place the thermistor in three temperature conditions: room temperature, ice water, and boiling water. For each condition, measure the thermistor's resistance using the ADC value and use a reliable thermometer to record the actual temperature. Using the resistance values and corresponding temperatures, calculate the coefficients:
+
+To determine the accurate values for A, B, and C, place the thermistor in three temperature conditions: room temperature, ice water, and hot water. For each condition, measure the thermistor's resistance using the ADC value and use a reliable thermometer to record the actual temperature. Using the resistance values and corresponding temperatures, calculate the coefficients:
 - Assign A to the ice water temperature,
 - B to the room temperature, and
-- C to the boiling water temperature.
+- C to the hot water temperature.
 
 ### Calculating Steinhart-Hart Coefficients
 
@@ -111,9 +112,9 @@ Please note that the ADC bits may need to be adjusted if you're using a differen
         <td>Room Temperature</td>
         <td><input type="number" id="adcRoomCount" name="adcRoomCount" step="any" oninput="updateResistance()"></td>
       </tr>
-      <!-- Boiling Water Row -->
+      <!-- hot Water Row -->
       <tr>
-      <td>Boiling Water</td>
+      <td>Hot Water</td>
         <td><input type="number" id="adcBoilCount" name="adcBoilCount" step="any" oninput="updateResistance()"></td>
       </tr>
     </tbody>
@@ -151,7 +152,7 @@ Adjust the temperature by entering a value in either Fahrenheit or Celsius; the 
 <td><input type="number" id="roomTempK" name="roomTempK" step="any" readonly></td>
 </tr>
 <tr>
-<td>Boiling Water</td>
+<td>Hot Water</td>
 <td><input type="number" id="resistanceBoiling" name="resistanceBoiling"  step="any" oninput="validateInput()"></td>
 
 <td><input type="number" id="boilTempF" name="boilTempF" step="any"  oninput="calcTempFromFarenhit('boilTempC', 'boilTempF', 'boilTempK', 'resistanceBoiling')"></td>
