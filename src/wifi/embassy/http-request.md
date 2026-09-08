@@ -90,7 +90,8 @@ use esp_hal::rng::Rng;
 use esp_hal::timer::timg::TimerGroup;
 use esp_println::{self as _, println};
 use esp_radio::wifi::{
-    ClientConfig, ModeConfig, ScanConfig, WifiController, WifiDevice, WifiEvent, WifiStaState,
+    AuthenticationMethodConfig, Config, ControllerConfig, Interface, WifiController,
+    sta::StationConfig,
 };
 use reqwless::client::{HttpClient, TlsConfig};
 
@@ -119,7 +120,7 @@ macro_rules! mk_static {
 const SSID: &str = env!("SSID");
 const PASSWORD: &str = env!("PASSWORD");
 
-#[esp_rtos::main]
+#[esp_hal::main]
 async fn main(spawner: Spawner) -> ! {
     // generator version: 1.0.0
 
@@ -129,22 +130,25 @@ async fn main(spawner: Spawner) -> ! {
     esp_alloc::heap_allocator!(#[unsafe(link_section = ".dram2_uninit")] size: 98767);
 
     let timg0 = TimerGroup::new(peripherals.TIMG0);
-    esp_rtos::start(timg0.timer0);
+    esp_rtos::start(timg0.timer0, peripherals.FROM_CPU_INTR0);
 
     info!("Embassy initialized!");
 
-    // let radio_init = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
     let rng = Rng::new();
-    let radio_init = &*mk_static!(
-        esp_radio::Controller<'static>,
-        esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller")
+    let station_config = Config::Station(
+        StationConfig::default()
+            .with_ssid(SSID.try_into().unwrap())
+            .with_authentication(AuthenticationMethodConfig::Wpa2Personal(
+                PASSWORD.try_into().unwrap(),
+            )),
     );
 
-    let (wifi_controller, interfaces) =
-        esp_radio::wifi::new(&radio_init, peripherals.WIFI, Default::default())
-            .expect("Failed to initialize Wi-Fi controller");
-
-    let wifi_interface = interfaces.sta;
+    let wifi_interface = Interface::station();
+    let wifi_controller = WifiController::new(
+        peripherals.WIFI,
+        ControllerConfig::default().with_initial_config(station_config),
+    )
+    .expect("Failed to initialize Wi-Fi controller");
 
     let net_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
     let tls_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
@@ -160,8 +164,8 @@ async fn main(spawner: Spawner) -> ! {
         net_seed,
     );
 
-    spawner.spawn(connection(wifi_controller)).ok();
-    spawner.spawn(net_task(runner)).ok();
+    spawner.spawn(connection(wifi_controller).unwrap());
+    spawner.spawn(net_task(runner).unwrap());
 
     wait_for_connection(stack).await;
 
@@ -171,72 +175,35 @@ async fn main(spawner: Spawner) -> ! {
 }
 
 async fn wait_for_connection(stack: Stack<'_>) {
-    println!("Waiting for link to be up");
-    loop {
-        if stack.is_link_up() {
-            break;
-        }
-        Timer::after(Duration::from_millis(500)).await;
-    }
-
-    println!("Waiting to get IP address...");
-    loop {
-        if let Some(config) = stack.config_v4() {
-            println!("Got IP: {}", config.address);
-            break;
-        }
-        Timer::after(Duration::from_millis(500)).await;
+    stack.wait_config_up().await;
+    if let Some(config) = stack.config_v4() {
+        println!("Got IP: {}", config.address);
     }
 }
 
 #[embassy_executor::task]
 async fn connection(mut controller: WifiController<'static>) {
     println!("start connection task");
-    println!("Device capabilities: {:?}", controller.capabilities());
     loop {
-        match esp_radio::wifi::sta_state() {
-            WifiStaState::Connected => {
-                // wait until we're no longer connected
-                controller.wait_for_event(WifiEvent::StaDisconnected).await;
-                Timer::after(Duration::from_millis(5000)).await
-            }
-            _ => {}
-        }
-        if !matches!(controller.is_started(), Ok(true)) {
-            let client_config = ModeConfig::Client(
-                ClientConfig::default()
-                    .with_ssid(SSID.into())
-                    .with_password(PASSWORD.into()),
-            );
-            controller.set_config(&client_config).unwrap();
-            println!("Starting wifi");
-            controller.start_async().await.unwrap();
-            println!("Wifi started!");
-
-            println!("Scan");
-            let scan_config = ScanConfig::default().with_max(10);
-            let result = controller
-                .scan_with_config_async(scan_config)
-                .await
-                .unwrap();
-            for ap in result {
-                println!("{:?}", ap);
-            }
-        }
         println!("About to connect...");
 
         match controller.connect_async().await {
-            Ok(_) => println!("Wifi connected!"),
+            Ok(info) => {
+                println!("Wifi connected to {:?}", info);
+                let info = controller.wait_for_disconnect_async().await.ok();
+                println!("Disconnected: {:?}", info);
+            }
             Err(e) => {
                 println!("Failed to connect to wifi: {:?}", e);
-                Timer::after(Duration::from_millis(5000)).await
             }
         }
+
+        Timer::after(Duration::from_millis(5000)).await;
     }
 }
 
 #[embassy_executor::task]
-async fn net_task(mut runner: Runner<'static, WifiDevice<'static>>) {
+async fn net_task(mut runner: Runner<'static, Interface>) {
     runner.run().await
 }
 

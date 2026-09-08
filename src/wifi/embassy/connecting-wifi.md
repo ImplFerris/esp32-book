@@ -27,7 +27,7 @@ Let's initialize Embassy with the usual setup:
 
 ```rust
 let timg0 = TimerGroup::new(peripherals.TIMG0);
-esp_rtos::start(timg0.timer0);
+esp_rtos::start(timg0.timer0, peripherals.FROM_CPU_INTR0);
 ```
 
 Load the Wi-Fi credentials from environment variables:
@@ -36,23 +36,27 @@ const SSID: &str = env!("SSID");
 const PASSWORD: &str = env!("PASSWORD");
 ```
 
-Next, we initialize the Radio controller with a static lifetime. We use the `mk_static!` macro to promote the controller to `'static` lifetime because the Wi-Fi network stack will run as an asynchronous task that processes network events continuously throughout the program's execution. This requires the `radio_init` variable to remain valid for the entire duration of the program.
+Next, create the station configuration. We provide the SSID and configure WPA2 Personal authentication using the Wi-Fi password.
 
 ```rust
-// let radio_init = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
-let radio_init = &*mk_static!(
-    esp_radio::Controller<'static>,
-    esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller")
+let station_config = Config::Station(
+    StationConfig::default()
+        .with_ssid(SSID.try_into().unwrap())
+        .with_authentication(AuthenticationMethodConfig::Wpa2Personal(
+            PASSWORD.try_into().unwrap(),
+        )),
 );
 ```
 
-Next, we create the Wi-Fi controller along with its associated network interfaces, then extract the STA interface.
+Now, create the station interface and Wi-Fi controller. The interface will be used by the network stack, while the controller configures and manages the Wi-Fi radio. We pass the station configuration as the initial configuration so that the controller starts in station mode.
 
 ```rust
-let (wifi_controller, interfaces) =
-        esp_radio::wifi::new(&radio_init, peripherals.WIFI, Default::default())
-            .expect("Failed to initialize Wi-Fi controller");
-let wifi_interface = interfaces.sta;
+let wifi_interface = Interface::station();
+let wifi_controller = WifiController::new(
+    peripherals.WIFI,
+    ControllerConfig::default().with_initial_config(station_config),
+)
+.expect("Failed to initialize Wi-Fi controller");
 ```
 
 ### Initialize the network stack
@@ -84,33 +88,21 @@ let (stack, runner) = embassy_net::new(
 Next, we will start two background tasks: the connection_task will maintain the Wi-Fi connection, while the net_task will run the network stack and handle network events.
 
 ```rust
-spawner.spawn(connection(controller)).ok();
-spawner.spawn(net_task(runner)).ok();
+spawner.spawn(connection(wifi_controller).unwrap());
+spawner.spawn(net_task(runner).unwrap());
 ```
 
 We'll shortly discuss what happens in these two tasks and check these function definitions. But first, let's complete the flow.
 
-## Wait for Wi-Fi connection
+## Wait for network configuration
 
-We will wait for the Wi-Fi link to be up, then obtain the IP address.
+Wait until `embassy-net` has a usable configuration, then print the address assigned by DHCP.
 
 ```rust
 async fn wait_for_connection(stack: Stack<'_>) {
-    println!("Waiting for link to be up");
-    loop {
-        if stack.is_link_up() {
-            break;
-        }
-        Timer::after(Duration::from_millis(500)).await;
-    }
-
-    println!("Waiting to get IP address...");
-    loop {
-        if let Some(config) = stack.config_v4() {
-            println!("Got IP: {}", config.address);
-            break;
-        }
-        Timer::after(Duration::from_millis(500)).await;
+    stack.wait_config_up().await;
+    if let Some(config) = stack.config_v4() {
+        println!("Got IP: {}", config.address);
     }
 }
 ```
@@ -118,56 +110,29 @@ async fn wait_for_connection(stack: Stack<'_>) {
 
 ## Wi-Fi connection tasks
 
-The connection_task function manages the Wi-Fi connection by continuously checking the status, configuring the Wi-Fi controller, and attempting to reconnect if the connection is lost or not started.
+The `connection` task connects to the configured access point and reconnects after a disconnection.
 
-1. First, we check the Wi-Fi state. If it is in StaConnected, we wait there until it gets disconnected. If it gets disconnected, we move to the other steps in the loop.
-2. We check if the Wi-Fi controller is started. If not, we initialize the Wi-Fi client configuration with the SSID (Wi-Fi name) and password, and start it.
-3. Finally, we attempt to connect to the Wi-Fi.
+After `connect_async()` succeeds, the task waits for a disconnection. If the connection is lost, the loop waits briefly and then attempts to connect again.
 
 ```rust
 #[embassy_executor::task]
 async fn connection(mut controller: WifiController<'static>) {
     println!("start connection task");
-    println!("Device capabilities: {:?}", controller.capabilities());
     loop {
-        match esp_radio::wifi::sta_state() {
-            WifiStaState::Connected => {
-                // wait until we're no longer connected
-                controller.wait_for_event(WifiEvent::StaDisconnected).await;
-                Timer::after(Duration::from_millis(5000)).await
-            }
-            _ => {}
-        }
-        if !matches!(controller.is_started(), Ok(true)) {
-            let client_config = ModeConfig::Client(
-                ClientConfig::default()
-                    .with_ssid(SSID.into())
-                    .with_password(PASSWORD.into()),
-            );
-            controller.set_config(&client_config).unwrap();
-            println!("Starting wifi");
-            controller.start_async().await.unwrap();
-            println!("Wifi started!");
-
-            println!("Scan");
-            let scan_config = ScanConfig::default().with_max(10);
-            let result = controller
-                .scan_with_config_async(scan_config)
-                .await
-                .unwrap();
-            for ap in result {
-                println!("{:?}", ap);
-            }
-        }
         println!("About to connect...");
 
         match controller.connect_async().await {
-            Ok(_) => println!("Wifi connected!"),
+            Ok(info) => {
+                println!("Wifi connected to {:?}", info);
+                let info = controller.wait_for_disconnect_async().await.ok();
+                println!("Disconnected: {:?}", info);
+            }
             Err(e) => {
                 println!("Failed to connect to wifi: {:?}", e);
-                Timer::after(Duration::from_millis(5000)).await
             }
         }
+
+        Timer::after(Duration::from_millis(5000)).await;
     }
 }
 ```
@@ -176,7 +141,7 @@ async fn connection(mut controller: WifiController<'static>) {
 
 ```rust
 #[embassy_executor::task]
-async fn net_task(mut runner: Runner<'static, WifiDevice<'static>>) {
+async fn net_task(mut runner: Runner<'static, Interface>) {
     runner.run().await
 }
 ```
