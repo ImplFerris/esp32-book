@@ -2,7 +2,7 @@
 
 # Connecting ESP32 to Wi-Fi and Accessing Websites Asynchronously with Embassy
 
-In this exercise, we will once again use the STA mode to access a website. But this time, we will do it asynchronously. We will use the reqwless crate as our HTTP client and the Embassy framework to enable asynchronous capabilities for embedded environments. Along with these, we will include additional helper crates.
+In this exercise, we will use STA mode to connect to a Wi-Fi network and access a website asynchronously. We will use Embassy for asynchronous tasks and the `reqwless` crate as our HTTP client.
 
 
 ## Generate project using esp-generate
@@ -37,7 +37,7 @@ This crate automatically gets added when you select the Wi-Fi and Embassy option
 
 ```toml
 # Updated embassy-net in Cargo.toml
-embassy-net = { version = "0.7.1", features = [
+embassy-net = { version = "0.9.0", features = [
   "defmt",
   "dhcpv4",
   "medium-ethernet",
@@ -48,28 +48,7 @@ embassy-net = { version = "0.7.1", features = [
 ] }
 ```
 
-### smoltcp
-
-The smoltcp crate also gets added to the Cargo.toml. We need to add feature "dns-max-server-count-4" in order to use DNS servers.
-
-```toml
-# Updated smoltcp in Cargo.toml
-smoltcp = { version = "0.12.0", default-features = false, features = [
-    "defmt",
-    "medium-ethernet",
-    "multicast",
-    "proto-dhcpv4",
-    "proto-dns",
-    "proto-ipv4",
-    "socket-dns",
-    "socket-icmp",
-    "socket-raw",
-    "socket-tcp",
-    "socket-udp",
-    # addition:
-    "dns-max-server-count-4", 
-] }
-```
+`embassy-net` uses `smoltcp` internally. The Wi-Fi `Interface` can be passed directly to `embassy-net`, which will use it as the network device.
 
 ### Reqwless
 The reqwless crate is an HTTP client for embedded systems, working with any transport that implements traits from the embedded-io crate.

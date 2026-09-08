@@ -5,7 +5,7 @@
 In the `main` function, we will perform the usual setup steps like initializing the Wi-Fi stack, SPI device, and creating an instance of the `Dashboard` we defined earlier.
 
 ```rust
-#[esp_rtos::main]
+#[esp_hal::main]
 async fn main(spawner: Spawner) -> ! {
     // generator version: 1.0.0
 
@@ -15,17 +15,13 @@ async fn main(spawner: Spawner) -> ! {
     esp_alloc::heap_allocator!(#[unsafe(link_section = ".dram2_uninit")] size: 98767);
 
     let timg0 = TimerGroup::new(peripherals.TIMG0);
-    esp_rtos::start(timg0.timer0);
+    esp_rtos::start(timg0.timer0, peripherals.FROM_CPU_INTR0);
 
     info!("Embassy initialized!");
 
-    let radio_init = &*lib::mk_static!(
-        esp_radio::Controller<'static>,
-        esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller")
-    );
     let rng = Rng::new();
 
-    let stack = lib::wifi::start_wifi(radio_init, peripherals.WIFI, rng, &spawner).await;
+    let stack = lib::wifi::start_wifi(peripherals.WIFI, rng, &spawner).await;
 
     let spi_bus = Spi::new(
         peripherals.SPI2,

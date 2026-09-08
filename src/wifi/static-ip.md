@@ -35,7 +35,7 @@ In the wifi.rs module we created in the previous chapter, remove the dhcp config
 // Additional imports
 use core::str::FromStr;
 use core::net::Ipv4Addr;
-use embassy_net::Ipv4Cidr;
+use embassy_net::{Ipv4Cidr, StaticConfigV4};
 ```
 
 ```rust
@@ -62,15 +62,23 @@ let net_config = embassy_net::Config::ipv4_static(StaticConfigV4 {
 
 ```rust
 pub async fn start_wifi(
-    radio_init: &'static esp_radio::Controller<'static>,
     wifi: esp_hal::peripherals::WIFI<'static>,
     rng: Rng,
     spawner: &Spawner,
 ) -> Stack<'static> {
-    let (wifi_controller, interfaces) = esp_radio::wifi::new(radio_init, wifi, Default::default())
-        .expect("Failed to initialize Wi-Fi controller");
-
-    let wifi_interface = interfaces.sta;
+    let station_config = Config::Station(
+        StationConfig::default()
+            .with_ssid(SSID.try_into().unwrap())
+            .with_authentication(AuthenticationMethodConfig::Wpa2Personal(
+                PASSWORD.try_into().unwrap(),
+            )),
+    );
+    let wifi_interface = Interface::station();
+    let wifi_controller = WifiController::new(
+        wifi,
+        ControllerConfig::default().with_initial_config(station_config),
+    )
+    .expect("Failed to initialize Wi-Fi controller");
     let net_seed = rng.random() as u64 | ((rng.random() as u64) << 32);
 
     let Ok(ip_addr) = Ipv4Cidr::from_str(STATIC_IP) else {
@@ -96,8 +104,8 @@ pub async fn start_wifi(
         net_seed,
     );
 
-    spawner.spawn(connection(wifi_controller)).ok();
-    spawner.spawn(net_task(runner)).ok();
+    spawner.spawn(connection(wifi_controller).unwrap());
+    spawner.spawn(net_task(runner).unwrap());
 
     wait_for_connection(stack).await;
 
