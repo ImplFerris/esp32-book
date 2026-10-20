@@ -19,6 +19,9 @@ or you can run locally
 mdbook serve --open
 ```
 
+* [Russian](https://r007.github.io/EmbeddedRust-Rus/esp32-book/)
+
+
 ## Datasheets
 For detailed technical information, specifications, and guidelines, refer to the official datasheets:
 - [ESP32 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf)
